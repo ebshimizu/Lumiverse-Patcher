@@ -138,8 +138,8 @@ void DMXMap::resized()
   int gridHeight = 16;
 
   auto area = getLocalBounds();
-  int width = area.getWidth() / gridWidth;
-  int height = area.getHeight() / gridHeight;
+  float width = (float)area.getWidth() / (float)gridWidth;
+  float height = (float)area.getHeight() / (float)gridHeight;
 
   // DMX widgets are in a 32 x 16 grid  
   for (int x = 0; x < 32; x++) {

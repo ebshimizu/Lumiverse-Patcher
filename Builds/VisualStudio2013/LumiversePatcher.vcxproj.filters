@@ -307,6 +307,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\panels\ProfileEditor.cpp">
+      <Filter>LumiversePatcher\Source\panels</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\panels\PatchPanel.cpp">
       <Filter>LumiversePatcher\Source\panels</Filter>
     </ClCompile>
@@ -1533,11 +1536,17 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\panels\ProfileEditor.h">
+      <Filter>LumiversePatcher\Source\panels</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\panels\PatchPanel.h">
       <Filter>LumiversePatcher\Source\panels</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\panels\DevicePanel.h">
       <Filter>LumiversePatcher\Source\panels</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\components\ProfileEditorProperties.h">
+      <Filter>LumiversePatcher\Source\components</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\components\DMXPatchViewer.h">
       <Filter>LumiversePatcher\Source\components</Filter>

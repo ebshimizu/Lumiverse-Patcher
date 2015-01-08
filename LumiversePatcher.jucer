@@ -6,12 +6,17 @@
   <MAINGROUP id="Lbptc0" name="LumiversePatcher">
     <GROUP id="{87064B84-14C7-265B-80F6-28E21365D76C}" name="Source">
       <GROUP id="{F053DD56-23B8-7C3C-455C-084E8878CD0C}" name="panels">
+        <FILE id="JiCurG" name="ProfileEditor.cpp" compile="1" resource="0"
+              file="Source/panels/ProfileEditor.cpp"/>
+        <FILE id="E6gSgU" name="ProfileEditor.h" compile="0" resource="0" file="Source/panels/ProfileEditor.h"/>
         <FILE id="Ea8Q9a" name="PatchPanel.cpp" compile="1" resource="0" file="Source/panels/PatchPanel.cpp"/>
         <FILE id="IukDzN" name="PatchPanel.h" compile="0" resource="0" file="Source/panels/PatchPanel.h"/>
         <FILE id="bs5Zdy" name="DevicePanel.cpp" compile="1" resource="0" file="Source/panels/DevicePanel.cpp"/>
         <FILE id="VdImkn" name="DevicePanel.h" compile="0" resource="0" file="Source/panels/DevicePanel.h"/>
       </GROUP>
       <GROUP id="{56C52D8C-F265-C43F-A440-D64F12FA2942}" name="components">
+        <FILE id="nWONFR" name="ProfileEditorProperties.h" compile="0" resource="0"
+              file="Source/components/ProfileEditorProperties.h"/>
         <FILE id="e7D5ml" name="DMXPatchViewer.cpp" compile="1" resource="0"
               file="Source/components/DMXPatchViewer.cpp"/>
         <FILE id="xioPR6" name="DMXPatchViewer.h" compile="0" resource="0"

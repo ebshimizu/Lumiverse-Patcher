@@ -52,6 +52,7 @@ private:
   void open();
   void save();
   void saveAs();
+  void openProfileEditor();
 
   string m_rigName;
   File m_parentDir;
@@ -59,6 +60,7 @@ private:
   ScopedPointer<DevicePanel> m_dp;
   ScopedPointer<PatchPanel> m_pp;
   ScopedPointer<StretchableLayoutResizerBar> m_rb;
+  SafePointer<Component> _profileEditorWindow;
   StretchableLayoutManager m_layout;
 };
 

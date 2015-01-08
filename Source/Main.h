@@ -59,7 +59,8 @@ public:
     save = 0x0003,
     saveAs = 0x0006,
 
-    // Internal
+    // Device
+    openProfileEditor = 0x1001
   };
 
   // Apparently we just leave this here to implement tooltips?

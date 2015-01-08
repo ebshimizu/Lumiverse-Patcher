@@ -136,6 +136,7 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\panels\ProfileEditor.cpp"/>
     <ClCompile Include="..\..\Source\panels\PatchPanel.cpp"/>
     <ClCompile Include="..\..\Source\panels\DevicePanel.cpp"/>
     <ClCompile Include="..\..\Source\components\DMXPatchViewer.cpp"/>
@@ -1245,8 +1246,10 @@
     <ClCompile Include="..\..\third-party\JUCE\modules\juce_video\juce_video.cpp"/>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\panels\ProfileEditor.h"/>
     <ClInclude Include="..\..\Source\panels\PatchPanel.h"/>
     <ClInclude Include="..\..\Source\panels\DevicePanel.h"/>
+    <ClInclude Include="..\..\Source\components\ProfileEditorProperties.h"/>
     <ClInclude Include="..\..\Source\components\DMXPatchViewer.h"/>
     <ClInclude Include="..\..\Source\components\DMXMap.h"/>
     <ClInclude Include="..\..\Source\components\DeviceTable.h"/>

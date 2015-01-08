@@ -51,6 +51,7 @@ ifeq ($(CONFIG),Release)
 endif
 
 OBJECTS := \
+  $(OBJDIR)/ProfileEditor_1edc7e9f.o \
   $(OBJDIR)/PatchPanel_928d8d5d.o \
   $(OBJDIR)/DevicePanel_f18dec77.o \
   $(OBJDIR)/DMXPatchViewer_457f37a5.o \
@@ -89,6 +90,11 @@ clean:
 strip:
 	@echo Stripping LumiversePatcher
 	-@strip --strip-unneeded $(OUTDIR)/$(TARGET)
+
+$(OBJDIR)/ProfileEditor_1edc7e9f.o: ../../Source/panels/ProfileEditor.cpp
+	-@mkdir -p $(OBJDIR)
+	@echo "Compiling ProfileEditor.cpp"
+	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 
 $(OBJDIR)/PatchPanel_928d8d5d.o: ../../Source/panels/PatchPanel.cpp
 	-@mkdir -p $(OBJDIR)

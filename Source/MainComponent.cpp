@@ -8,6 +8,7 @@
 
 #include "MainComponent.h"
 #include "Main.h"
+#include "panels/ProfileEditor.h"
 
 #include "LumiverseCore.h"
 using namespace Lumiverse;
@@ -28,6 +29,9 @@ MainContentComponent::MainContentComponent()
 
 MainContentComponent::~MainContentComponent()
 {
+  if (_profileEditorWindow != nullptr) {
+    _profileEditorWindow.deleteAndZero();
+  }
 }
 
 void MainContentComponent::paint (Graphics& g)
@@ -60,7 +64,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
 {
   // this returns the set of all commands that this target can perform..
   const CommandID ids[] = {
-    MainWindow::open, MainWindow::save, MainWindow::saveAs
+    MainWindow::open, MainWindow::save, MainWindow::saveAs, MainWindow::openProfileEditor
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -86,6 +90,10 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
     result.setInfo("Save As...", "Saves the current Rig under a new name.", generalCategory, 0);
     result.addDefaultKeypress('s', ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
     break;
+  case MainWindow::openProfileEditor:
+    result.setInfo("Open Profile Editor", "Opens the Profile Editor window.", deviceCategory, 0);
+    result.addDefaultKeypress(KeyPress::F2Key, ModifierKeys::noModifiers);
+    break;
   default:
     break;
   }
@@ -103,6 +111,9 @@ bool MainContentComponent::perform(const InvocationInfo& info)
     break;
   case MainWindow::saveAs:
     saveAs();
+    break;
+  case MainWindow::openProfileEditor:
+    openProfileEditor();
     break;
   default:
     return false;
@@ -202,5 +213,17 @@ void MainContentComponent::saveAs() {
     else {
       AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon, "Failed to save Rig.", "Try again or save under a different file name.", "OK");
     }
+  }
+}
+
+void MainContentComponent::openProfileEditor() {
+  if (_profileEditorWindow == nullptr) {
+    ProfileEditor* profileEditorWindow = new ProfileEditor("Profile Editor", Colours::white, DocumentWindow::allButtons);
+    profileEditorWindow->centreWithSize(800, 600);
+    profileEditorWindow->setResizable(true, false);
+    profileEditorWindow->setUsingNativeTitleBar(false);
+    profileEditorWindow->setVisible(true);
+
+    _profileEditorWindow = profileEditorWindow;
   }
 }
