@@ -49,6 +49,7 @@ private:
   ScopedPointer<PropertyPanel> _params;
 
   void addParam();
+  void reloadAll(string paramName);
 };
 
 //==============================================================================

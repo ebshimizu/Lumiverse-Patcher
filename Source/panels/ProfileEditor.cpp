@@ -16,7 +16,6 @@
 ProfileEditorComponent::ProfileEditorComponent()
 {
   _device = new Device("template", 0, "[New Device Type]");
-  _device->setParam("test", (LumiverseType*)new LumiverseFloat(0, 0, 1, 0));
 
   // When this initializes we don't have a file assigned.
   addAndMakeVisible(_browse = new TextButton("Open...", "Find a Profile to Open"));
@@ -106,6 +105,15 @@ void ProfileEditorComponent::reloadParameters() {
       _paramGUIs[p].add(new LumiverseFloatProperty("Min", fData, LumiverseFloatProperty::MIN));
       _paramGUIs[p].add(new LumiverseFloatProperty("Max", fData, LumiverseFloatProperty::MAX));
     }
+    if (data->getTypeName() == "orientation") {
+      LumiverseOrientation* oData = (LumiverseOrientation*)(data);
+      _paramGUIs[p].add(new LumiverseOrientationProperty("Default", oData, LumiverseOrientationProperty::DEFAULT));
+      _paramGUIs[p].add(new LumiverseOrientationProperty("Min", oData, LumiverseOrientationProperty::MIN));
+      _paramGUIs[p].add(new LumiverseOrientationProperty("Max", oData, LumiverseOrientationProperty::MAX));
+      _paramGUIs[p].add(new LumiverseOrientationUnits("Units", oData, [p,this]{ this->reloadAll(p); }));
+    }
+
+    _paramGUIs[p].add(new DeleteParameterButton(_device, p, [&]{ reloadParameters(); }));
 
     _params->addSection(sectionName, _paramGUIs[p], true);
   }
@@ -118,9 +126,9 @@ void ProfileEditorComponent::addParam() {
 
   StringArray types;
   types.add("Float");
-  //lists.add("Enumeration");
-  //lists.add("Color");
-  //lists.add("Orientation");
+  types.add("Enumeration");
+  types.add("Color");
+  types.add("Orientation");
 
   w.addTextEditor("name", "", "Name");
   w.addComboBox("types", types, "Type");
@@ -146,11 +154,29 @@ void ProfileEditorComponent::addParam() {
       // Float
       _device->setParam(name, (LumiverseType*)new LumiverseFloat());
     }
+    else if (typeChosen == 1) {
+      // Enum
+    }
+    else if (typeChosen == 2) {
+      // Color
+    }
+    else if (typeChosen == 3) {
+      // Orientation
+      _device->setParam(name, (LumiverseType*)new LumiverseOrientation());
+    }
 
     reloadParameters();
   }
 }
 
+void ProfileEditorComponent::reloadAll(string paramName) {
+  auto components = _paramGUIs[paramName];
+
+  for (auto c : components) {
+    auto pc = (PropertyComponent*)c;
+    pc->refresh();
+  }
+}
 
 //==============================================================================
 ProfileEditor::ProfileEditor(const String& name, Colour backgroundColour, int buttonsNeeded) : 
