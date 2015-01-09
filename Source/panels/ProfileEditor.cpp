@@ -16,6 +16,7 @@
 ProfileEditorComponent::ProfileEditorComponent()
 {
   _device = new Device("template", 0, "[New Device Type]");
+  _device->setParam("color", (LumiverseType*)new LumiverseColor(Lumiverse::BASIC_RGB));
 
   // When this initializes we don't have a file assigned.
   addAndMakeVisible(_browse = new TextButton("Open...", "Find a Profile to Open"));
@@ -105,12 +106,22 @@ void ProfileEditorComponent::reloadParameters() {
       _paramGUIs[p].add(new LumiverseFloatProperty("Min", fData, LumiverseFloatProperty::MIN));
       _paramGUIs[p].add(new LumiverseFloatProperty("Max", fData, LumiverseFloatProperty::MAX));
     }
-    if (data->getTypeName() == "orientation") {
+    else if (data->getTypeName() == "orientation") {
       LumiverseOrientation* oData = (LumiverseOrientation*)(data);
       _paramGUIs[p].add(new LumiverseOrientationProperty("Default", oData, LumiverseOrientationProperty::DEFAULT));
       _paramGUIs[p].add(new LumiverseOrientationProperty("Min", oData, LumiverseOrientationProperty::MIN));
       _paramGUIs[p].add(new LumiverseOrientationProperty("Max", oData, LumiverseOrientationProperty::MAX));
       _paramGUIs[p].add(new LumiverseOrientationUnits("Units", oData, [p,this]{ this->reloadAll(p); }));
+    }
+    else if (data->getTypeName() == "color") {
+      LumiverseColor* cData = (LumiverseColor*)(data);
+      _paramGUIs[p].add(new LumiverseColorModeProperty("Mode", cData, [this]{ this->reloadParameters(); }));
+      _paramGUIs[p].add(new LumiverseColorWeightProperty("Weight", cData));
+      if (cData->getMode() != BASIC_RGB && cData->getMode() != BASIC_CMY) {
+        _paramGUIs[p].add(new LumiverseColorChannelsProperty("Channels", cData, [p, this]{ this->reloadAll(p); this->_params->resized(); }));
+        // Add basis vectors editor.
+        _paramGUIs[p].add(new LumiverseColorBasisVectorButton(cData, [this]{ this->reloadParameters(); }));
+      }
     }
 
     _paramGUIs[p].add(new DeleteParameterButton(_device, p, [&]{ reloadParameters(); }));
@@ -158,7 +169,7 @@ void ProfileEditorComponent::addParam() {
       // Enum
     }
     else if (typeChosen == 2) {
-      // Color
+      _device->setParam(name, (LumiverseType*)new LumiverseColor());
     }
     else if (typeChosen == 3) {
       // Orientation

@@ -40,7 +40,7 @@ public:
 private:
   Device* _device;
   map<string, conversionType> _deviceMap;
-  map < string, Array<PropertyComponent*> > _paramGUIs;
+  map < string, Array<PropertyComponent* > > _paramGUIs;
 
   File _profile;
 
@@ -50,6 +50,8 @@ private:
 
   void addParam();
   void reloadAll(string paramName);
+
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ProfileEditorComponent);
 };
 
 //==============================================================================
