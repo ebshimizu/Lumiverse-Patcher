@@ -1083,4 +1083,184 @@ private:
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LumiverseEnumValuesProperty);
 };
 
+class LumiverseMetadataEdit : public Component, private TextEditorListener, private ButtonListener {
+public:
+  LumiverseMetadataEdit(string key, Device* device, function<void()> callback) :
+    _key(key), _device(device), _cb(callback)
+  {
+    addAndMakeVisible(_name);
+    addAndMakeVisible(_val);
+    addAndMakeVisible(_delete);
+
+    _name.setName("name");
+    _name.addListener(this);
+    _name.setMultiLine(false);
+    _name.setText(key);
+    
+    _val.setName("val");
+    _val.addListener(this);
+    _val.setMultiLine(false);
+    _val.setText(device->getMetadata(key));
+
+    _delete.setButtonText("Delete");
+    _delete.addListener(this);
+  }
+
+  ~LumiverseMetadataEdit() {}
+
+  void resized() {
+    auto bounds = getLocalBounds();
+    _name.setBounds(bounds.removeFromLeft(150));
+    _delete.setBounds(bounds.removeFromRight(50));
+    _val.setBounds(bounds);
+  }
+
+  void textEditorReturnKeyPressed(TextEditor& e) override {
+    if (e.getName() == "name") {
+      // Name change
+      // First check if name already exists. If so change text field BG to red.
+      string newName = e.getText().toStdString();
+      if (_device->metadataExists(newName)) {
+        e.setColour(TextEditor::backgroundColourId, Colour(0xffff4d4d));
+        return;
+      }
+
+      e.setColour(TextEditor::backgroundColourId, Colours::white);
+      _device->deleteMetadata(_key);
+
+      _key = _name.getText().toStdString();
+      _device->setMetadata(_key, _val.getText().toStdString());
+
+      _cb();
+    }
+    else {
+      _device->setMetadata(_key, e.getText().toStdString());
+    }
+  }
+
+  void textEditorFocusLost(TextEditor& e) override {
+    textEditorReturnKeyPressed(e);
+
+    if (e.getName() == "name" && (e.getText() == _key)) {
+      e.setColour(TextEditor::backgroundColourId, Colours::white);
+    }
+  }
+
+  void buttonClicked(Button* b) {
+    // Confirm delete if add button not pressed.
+    // Note that if someone names their color parameter "add" for some reason
+    // we first kick them and then note that this won't work.
+    juce::AlertWindow w("Delete Metadata Field",
+      "Are you sure you want to delete " + _key + "?",
+      juce::AlertWindow::WarningIcon);
+
+    w.addButton("Delete", 1, KeyPress(KeyPress::returnKey, 0, 0));
+    w.addButton("Cancel", 0, KeyPress(KeyPress::escapeKey, 0, 0));
+
+    if (w.runModalLoop() != 0) // is they picked 'delete'
+    {
+      _device->deleteMetadata(_key);
+      _cb();
+    }
+  }
+
+private:
+  TextEditor _name;
+  TextEditor _val;
+  TextButton _delete;
+
+  string _key;
+  Device* _device;
+  function<void()> _cb;
+};
+
+class LumiverseMetadataEditProperty : public PropertyComponent
+{
+public:
+  LumiverseMetadataEditProperty(string key, Device* device, function<void()> callback) :
+    PropertyComponent(key)
+  {
+    addAndMakeVisible(_comp = new LumiverseMetadataEdit(key, device, callback));
+    preferredHeight = 25;
+  }
+
+  ~LumiverseMetadataEditProperty() {
+    _comp = nullptr;
+  }
+
+  void refresh() override {
+    repaint();
+  }
+
+private:
+  ScopedPointer<LumiverseMetadataEdit> _comp;
+  
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LumiverseMetadataEditProperty);
+};
+
+class LumiverseDMXMapTypeProperty : public ChoicePropertyComponent
+{
+public:
+  LumiverseDMXMapTypeProperty(map<string, patchData>* data, string key, Device* device) :
+    ChoicePropertyComponent("Conversion Type"), _data(data), _key(key)
+  {
+    LumiverseType* param = device->getParam(key);
+    if (param->getTypeName() == "float") {
+      choices.add("FLOAT_TO_SINGLE");
+      choices.add("FLOAT_TO_FINE");
+      choices.add("RGB_REPEAT2");
+      choices.add("RGB_REPEAT3");
+      choices.add("RGB_REPEAT4");
+    }
+    else if (param->getTypeName() == "enum") {
+      choices.add("ENUM");
+    }
+    else if (param->getTypeName() == "color") {
+      choices.add("COLOR_RGB");
+      choices.add("COLOR_RGBW");
+      choices.add("COLOR_LUSTRPLUS");
+    }
+    else if (param->getTypeName() == "orientation") {
+      choices.add("ORI_TO_FINE");
+    }
+  }
+
+  ~LumiverseDMXMapTypeProperty() {}
+
+  void setIndex(int newIndex) override {
+    (*_data)[_key].type = (conversionType)stringToConvType[choices[newIndex].toStdString()];
+  }
+
+  int getIndex() const override {
+    return choices.indexOf(String(convTypeToString[(*_data)[_key].type]));
+  }
+
+private:
+  map<string, patchData>* _data;
+  string _key;
+};
+
+class LumiverseDMXMapOffsetProperty : public TextPropertyComponent {
+public:
+  LumiverseDMXMapOffsetProperty(map<string, patchData>* data, string key) :
+    TextPropertyComponent("Address Offset", 3, false), _data(data), _key(key)
+  {
+
+  }
+
+  ~LumiverseDMXMapOffsetProperty() {}
+
+  void setText(const String& newText) override {
+    (*_data)[_key].startAddress = newText.getIntValue();
+  }
+
+  String getText() const override {
+    return String((*_data)[_key].startAddress);
+  }
+
+private:
+  map<string, patchData>* _data;
+  string _key;
+};
+
 #endif  // PROFILEEDITORPROPERTIES_H_INCLUDED

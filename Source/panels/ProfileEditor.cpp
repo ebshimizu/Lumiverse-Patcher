@@ -16,7 +16,7 @@
 ProfileEditorComponent::ProfileEditorComponent()
 {
   _device = new Device("template", 0, "[New Device Type]");
-  _device->setParam("enum", (LumiverseType*)new LumiverseEnum());
+  _device->setMetadata("Hello", "world");
 
   // When this initializes we don't have a file assigned.
   addAndMakeVisible(_browse = new TextButton("Open...", "Find a Profile to Open"));
@@ -27,14 +27,24 @@ ProfileEditorComponent::ProfileEditorComponent()
   _addParam->setName("AddParam");
   _addParam->addListener(this);
 
+  addAndMakeVisible(_addMetadata = new TextButton("Add Metadata", "Add a new Metadata Field"));
+  _addMetadata->setName("AddMetadata");
+  _addMetadata->addListener(this);
+
+  addAndMakeVisible(_dmxMap = new PropertyPanel("DMX Settings"));
   addAndMakeVisible(_params = new PropertyPanel("Parameters"));
   reloadParameters();
+
+  addAndMakeVisible(_metadata = new PropertyPanel("Metadata"));
+  reloadMetadata();
 }
 
 ProfileEditorComponent::~ProfileEditorComponent()
 {
   delete _device;
   _browse = nullptr;
+  _addMetadata = nullptr;
+  _addParam = nullptr;
 }
 
 void ProfileEditorComponent::close() {
@@ -66,6 +76,11 @@ void ProfileEditorComponent::paint (Graphics& g)
 
   g.setFont(16);
   g.drawFittedText("Parameters", area.removeFromTop(30), Justification::centredLeft, 1);
+
+  area.removeFromBottom(200);
+  auto bottom = area.removeFromBottom(30);
+  g.drawFittedText("DMX Settings", bottom.removeFromRight(250), Justification::centredLeft, 1);
+  g.drawFittedText("Metadata", bottom, Justification::centredLeft, 1);
 }
 
 void ProfileEditorComponent::resized()
@@ -77,12 +92,25 @@ void ProfileEditorComponent::resized()
   _browse->setBounds(area.removeFromTop(30).removeFromRight(100));
 
   _addParam->setBounds(area.removeFromTop(30).removeFromBottom(20).removeFromRight(100));
-  _params->setBounds(area.removeFromTop(300));
+
+  auto bottom = area.removeFromBottom(200);
+  _dmxMap->setBounds(bottom.removeFromRight(250));
+  _metadata->setBounds(bottom);
+
+  area.removeFromBottom(5);
+  auto metadataRegion = area.removeFromBottom(20);
+  metadataRegion.removeFromRight(255);
+  _addMetadata->setBounds(metadataRegion.removeFromRight(100));
+
+  _params->setBounds(area);
 }
 
 void ProfileEditorComponent::buttonClicked(Button* b) {
   if (b->getName() == "AddParam") {
     addParam();
+  }
+  if (b->getName() == "AddMetadata") {
+    addMetadata();
   }
 }
 
@@ -139,6 +167,66 @@ void ProfileEditorComponent::reloadParameters() {
 
     _params->addSection(sectionName, _paramGUIs[p], true);
   }
+
+  reloadDMXMap();
+}
+
+void ProfileEditorComponent::reloadMetadata() {
+  _metadata->clear();
+
+  _metadataProperties.clear();
+
+  for (auto m : _device->getMetadataKeyNames()) {
+    _metadataProperties.add(new LumiverseMetadataEditProperty(m, _device, [this]{ this->reloadMetadata(); }));
+  }
+
+  _metadata->addProperties(_metadataProperties);
+}
+
+void ProfileEditorComponent::reloadDMXMap() {
+  _dmxMap->clear();
+
+  for (auto p : _device->getParamNames())
+  {
+    Array<PropertyComponent*> props;
+
+    if (_dmxMapData.count(p) == 0)
+    {
+      // Start a new entry
+      patchData d(0, FLOAT_TO_SINGLE);
+
+      string type = _device->getParam(p)->getTypeName();
+      if (type == "enum") {
+        d.type = ENUM;
+      }
+      else if (type == "color") {
+        d.type = COLOR_RGB;
+      }
+      else if (type == "orientation") {
+        d.type = ORI_TO_FINE;
+      }
+
+      _dmxMapData[p] = d;
+    }
+
+    props.add(new LumiverseDMXMapTypeProperty(&_dmxMapData, p, _device));
+    props.add(new LumiverseDMXMapOffsetProperty(&_dmxMapData, p));
+
+    _dmxMap->addSection(p, props, true);
+  }
+
+  // Check if there are things in the DMX map that should be deleted
+  vector<string> toDelete;
+  for (const auto& kvp : _dmxMapData)
+  {
+    if (_device->getParam(kvp.first) == nullptr) {
+      toDelete.push_back(kvp.first);
+    }
+  }
+
+  for (const auto& k : toDelete) {
+    _dmxMapData.erase(k);
+  }
 }
 
 void ProfileEditorComponent::addParam() {
@@ -189,6 +277,33 @@ void ProfileEditorComponent::addParam() {
     }
 
     reloadParameters();
+  }
+}
+
+void ProfileEditorComponent::addMetadata() {
+  juce::AlertWindow w("Add Metadata Field",
+    "Add a Metadata Field to the Profile.",
+    juce::AlertWindow::QuestionIcon);
+
+  w.addTextEditor("name", "", "Name");
+
+  w.addButton("Add", 1, KeyPress(KeyPress::returnKey, 0, 0));
+  w.addButton("Cancel", 0, KeyPress(KeyPress::escapeKey, 0, 0));
+
+  if (w.runModalLoop() != 0) // is they picked 'add'
+  {
+    string name = w.getTextEditor("name")->getText().toStdString();
+
+    if (_device->metadataExists(name)) {
+      juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+        "Unable to add Metadata Field",
+        "A field with the name \"" + name + "\" already exists.",
+        "OK");
+      return;
+    }
+
+    _device->setMetadata(name, "");
+    reloadMetadata();
   }
 }
 
