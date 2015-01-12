@@ -351,6 +351,12 @@ public:
       if (w.runModalLoop() != 0) // is they picked 'delete'
       {
         _color->deleteColorChannel(b->getName().toStdString());
+
+        if (_color->getBasisVectors().count(b->getName().toStdString()) > 0) {
+          // delete the basis vector too
+          _color->removeBasisVector(b->getName().toStdString());
+        }
+
         initFields();
       }
     }
@@ -375,6 +381,11 @@ public:
             "A channel with the name \"" + name + "\" already exists.",
             "OK");
           return;
+        }
+
+        if (_color->getBasisVectors().size() > 0) {
+          // Add basis vector if we're using them
+          _color->setBasisVector(name, 0, 0, 0);
         }
 
         initFields();
@@ -424,6 +435,135 @@ private:
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LumiverseColorChannelsProperty);
 };
 
+class LumiverseColorBasisVectors : public Component, public TextEditorListener {
+public:
+  LumiverseColorBasisVectors(LumiverseColor* data, function<void()> callback) :
+    _color(data), _cb(callback)
+  {
+    initFields();
+  }
+  
+  ~LumiverseColorBasisVectors() { deleteFields(); }
+
+  void deleteFields() {
+    for (auto& kvp : _fields) {
+      delete kvp.second[0];
+      delete kvp.second[1];
+      delete kvp.second[2];
+      
+      kvp.second.clear();
+    }
+
+    _fields.clear();
+  }
+
+  void initFields() {
+    deleteFields();
+
+    for (const auto& bv : _color->getBasisVectors()) {
+      // Create three fields for each basis vector
+      auto x = new TextEditor(bv.first);
+      x->setMultiLine(false);
+      x->setText(String(bv.second.x()), false);
+      x->addListener(this);
+      addAndMakeVisible(x);
+      _fields[bv.first].add(x);
+
+      auto y = new TextEditor(bv.first);
+      y->setMultiLine(false);
+      y->setText(String(bv.second.y()), false);
+      y->addListener(this);
+      addAndMakeVisible(y);
+      _fields[bv.first].add(y);
+
+      auto z = new TextEditor(bv.first);
+      z->setMultiLine(false);
+      z->setText(String(bv.second.z()), false);
+      z->addListener(this);
+      addAndMakeVisible(z);
+      _fields[bv.first].add(z);
+    }
+
+    resized();
+  }
+
+  void resized() {
+    auto bounds = getLocalBounds();
+    float width = getWidth() - _textLabelSize;
+    float fieldSize = width / 3;
+
+    for (const auto& f : _fields) {
+      auto row = bounds.removeFromTop(_rowHeight);
+      row.removeFromLeft(_textLabelSize);
+      f.second[0]->setBounds(row.removeFromLeft(fieldSize));
+      f.second[1]->setBounds(row.removeFromLeft(fieldSize));
+      f.second[2]->setBounds(row);
+    }
+  }
+
+  void paint(Graphics& g) {
+    auto bounds = getLocalBounds();
+
+    g.setFont(12);
+    for (const auto& f : _fields) {
+      auto row = bounds.removeFromTop(_rowHeight);
+      g.drawFittedText(f.first, row.removeFromLeft(_textLabelSize), Justification::centredLeft, 1);
+    }
+  }
+
+  int getTotalHeight() {
+    return _fields.size() * _rowHeight + 3;
+  }
+
+  void textEditorReturnKeyPressed(TextEditor& e) override {
+    string name = e.getName().toStdString();
+    _color->setBasisVector(name, _fields[name][0]->getText().getDoubleValue(), _fields[name][1]->getText().getDoubleValue(), _fields[name][2]->getText().getDoubleValue());
+  }
+
+  void textEditorFocusLost(TextEditor& e) override {
+    textEditorReturnKeyPressed(e);
+  }
+
+private:
+  LumiverseColor* _color;
+  function<void()> _cb;
+  float _textLabelSize = 100;
+  int _rowHeight = 20;
+  
+  map<string, Array<TextEditor*> > _fields;
+
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LumiverseColorBasisVectors);
+};
+
+class LumiverseColorBasisVectorsProperty : public PropertyComponent {
+public:
+  LumiverseColorBasisVectorsProperty(const String& propertyName, LumiverseColor* data, function<void()> callback) :
+    PropertyComponent(propertyName), _color(data), _cb(callback)
+  {
+    _comp = new LumiverseColorBasisVectors(data, callback);
+    addAndMakeVisible(_comp);
+    preferredHeight = _comp->getTotalHeight();
+  }
+
+  ~LumiverseColorBasisVectorsProperty() {
+    _comp = nullptr;
+  }
+
+  void refresh() override {
+    _comp->initFields();
+    setPreferredHeight(_comp->getTotalHeight());
+    resized();
+    repaint();
+  }
+
+private:
+  ScopedPointer<LumiverseColorBasisVectors> _comp;
+  LumiverseColor* _color;
+  function<void()> _cb;
+
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LumiverseColorBasisVectorsProperty);
+};
+
 class LumiverseColorModeProperty : public ChoicePropertyComponent {
 public:
   LumiverseColorModeProperty(const String& propertyName, LumiverseColor* data, function<void()> callback) :
@@ -450,6 +590,8 @@ public:
 private:
   LumiverseColor* _color;
   function<void()> _cb;
+
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LumiverseColorModeProperty)
 };
 
 class LumiverseColorWeightProperty : public TextPropertyComponent {
@@ -529,4 +671,416 @@ private:
   LumiverseColor* _color;
   function<void()> _cb;
 };
+
+class LumiverseEnumTweakProperty : public TextPropertyComponent {
+public:
+  LumiverseEnumTweakProperty(const String& propertyName, LumiverseEnum* data) :
+    TextPropertyComponent(propertyName, 50, false), _enum(data)
+  {
+
+  }
+
+  ~LumiverseEnumTweakProperty() {}
+
+  void setText(const String& newText) override {
+    _enum->setTweak(newText.getFloatValue());
+  }
+
+  String getText() const override {
+    return String(_enum->getTweak());
+  }
+
+private:
+  LumiverseEnum* _enum;
+
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LumiverseEnumTweakProperty);
+};
+
+class LumiverseEnumDefaultProperty : public PropertyComponent, private ComboBoxListener {
+public:
+  LumiverseEnumDefaultProperty(const String& propertyName, LumiverseEnum* data) :
+    PropertyComponent(propertyName), _enum(data)
+  {
+    addAndMakeVisible(comboBox);
+    comboBox.setEditableText(false);
+    comboBox.addListener(this);
+    initMenu();
+  }
+
+  ~LumiverseEnumDefaultProperty() {}
+
+  void initMenu() {
+    choices.clear();
+    comboBox.clear();
+
+    for (const auto& k : _enum->getVals()) {
+      choices.add(k);
+    }
+    comboBox.addItemList(choices, 1);
+  }
+
+  void setIndex(int newIndex) {
+    string key = choices[newIndex].toStdString();
+    _enum->setVal(key);
+    _enum->setDefault(key);
+  }
+
+  int getIndex() const {
+    return choices.indexOf(String(_enum->getDefault()));
+  }
+
+  void refresh() override {
+    initMenu();
+    repaint();
+
+    comboBox.setSelectedId (getIndex() + 1, dontSendNotification);
+  }
+
+protected:
+  /** The list of options that will be shown in the combo box.
+
+  Your subclass must populate this array in its constructor. If any empty
+  strings are added, these will be replaced with horizontal separators (see
+  ComboBox::addSeparator() for more info).
+  */
+  StringArray choices;
+
+private:
+  ComboBox comboBox;
+
+  void comboBoxChanged(ComboBox*)
+  {
+    const int newIndex = comboBox.getSelectedId() - 1;
+
+    if (newIndex != getIndex())
+      setIndex(newIndex);
+  }
+
+  LumiverseEnum* _enum;
+
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LumiverseEnumDefaultProperty);
+};
+
+class LumiverseEnumModeProperty : public ChoicePropertyComponent {
+public:
+  LumiverseEnumModeProperty(const String& propertyName, LumiverseEnum* data) :
+    ChoicePropertyComponent(propertyName), _enum(data)
+  {
+    choices.add("First");
+    choices.add("Center");
+    choices.add("Last");
+  }
+
+  ~LumiverseEnumModeProperty() { }
+
+  void setIndex(int newIndex) override {
+    _enum->setMode((LumiverseEnum::Mode)newIndex);
+  }
+
+  int getIndex() const override {
+    return _enum->getMode();
+  }
+
+private:
+  LumiverseEnum* _enum;
+
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LumiverseEnumModeProperty)
+};
+
+class LumiverseEnumInterpProperty : public ChoicePropertyComponent {
+public:
+  LumiverseEnumInterpProperty(const String& propertyName, LumiverseEnum* data) :
+    ChoicePropertyComponent(propertyName), _enum(data)
+  {
+    choices.add("Snap");
+    choices.add("Smooth Within Option");
+    choices.add("Smooth");
+  }
+
+  ~LumiverseEnumInterpProperty() {}
+
+  void setIndex(int newIndex) override {
+    _enum->setInterpMode((LumiverseEnum::InterpolationMode)newIndex);
+  }
+
+  int getIndex() const override {
+    return _enum->getInterpMode();
+  }
+
+private:
+  LumiverseEnum* _enum;
+
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LumiverseEnumInterpProperty);
+};
+
+class LumiverseEnumRangeMaxProperty : public TextPropertyComponent {
+public: 
+  LumiverseEnumRangeMaxProperty(const String& propertyName, LumiverseEnum* data) :
+    TextPropertyComponent(propertyName, 50, false), _enum(data)
+  { }
+
+  ~LumiverseEnumRangeMaxProperty() {}
+
+  void setText(const String& newText) override {
+    int max = newText.getIntValue();
+
+    if (max < _enum->getHighestStartValue()) {
+      juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+        "Range Error",
+        "A key in the enumeration has a lower start value than the specified max.",
+        "OK");
+      refresh();
+      return;
+    }
+    else 
+      _enum->setRangeMax(newText.getIntValue());
+  }
+
+  String getText() const override {
+    return String(_enum->getRangeMax());
+  }
+
+private:
+  LumiverseEnum* _enum;
+
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LumiverseEnumRangeMaxProperty);
+};
+
+class LumiverseEnumValues : public Component, private TextEditorListener, private ButtonListener {
+public:
+  class startsFieldListener : public TextEditorListener {
+  public:
+    startsFieldListener(LumiverseEnum* e, function<void()> cb) : _enum(e), _cb(cb) {}
+    ~startsFieldListener() {}
+
+    void textEditorReturnKeyPressed(TextEditor& e) override {
+      int val = e.getText().getIntValue();
+      if (val > _enum->getRangeMax()) {
+        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+          "Range Error",
+          "Start value for " + e.getName() + " exceeds the maximum value for the enumeration",
+          "OK");
+      }
+      else
+        _enum->addVal(e.getName().toStdString(), val);
+
+      _cb();
+    }
+
+    void textEditorFocusLost(TextEditor& e) override {
+      textEditorReturnKeyPressed(e);
+    }
+  private:
+    LumiverseEnum* _enum;
+    function<void()> _cb;
+  };
+
+  LumiverseEnumValues(LumiverseEnum* data, function<void()> callback) :
+    _enum(data), _cb(callback)
+  {
+    _startsListener = new startsFieldListener(data, [this]{this->initFields(); });
+    _add = new TextButton("add");
+    addAndMakeVisible(_add);
+    _add->setButtonText("Add Enumeration Option");
+    _add->addListener(this);
+
+    initFields(false);
+  }
+
+  ~LumiverseEnumValues() {
+    deleteFields();
+
+    _add = nullptr;
+    _startsListener = nullptr;
+  }
+
+  void deleteFields() {
+    for (auto kvp : _names) {
+      kvp.second = nullptr;
+    }
+
+    for (auto kvp : _deletes) {
+      kvp.second = nullptr;
+    }
+
+    for (auto kvp : _starts) {
+      kvp.second = nullptr;
+    }
+
+    _names.clear();
+    _deletes.clear();
+    _starts.clear();
+  }
+
+  void initFields(bool doCallback = true) {
+    deleteFields();
+
+    // For each enum field, add two text fields and a button
+    for (const auto& kvp : _enum->getStartToVals()) {
+      if (_names.count(kvp.second) > 0) {
+        // Shouldn't have duplicates here.
+        return;
+      }
+
+      auto nameEditor = new TextEditor(kvp.second);
+      nameEditor->setMultiLine(false);
+      nameEditor->setText(kvp.second, false);
+      nameEditor->addListener(this);
+      addAndMakeVisible(nameEditor);
+      _names[kvp.second] = nameEditor;
+
+      auto startEditor = new TextEditor(kvp.second);
+      startEditor->setMultiLine(false);
+      startEditor->setText(String(kvp.first));
+      startEditor->addListener(_startsListener);
+      addAndMakeVisible(startEditor);
+      _starts[kvp.second] = startEditor;
+
+      auto deleteButton = new TextButton(kvp.second, "Delete Option");
+      deleteButton->setButtonText("Delete");
+      deleteButton->addListener(this);
+      addAndMakeVisible(deleteButton);
+      _deletes[kvp.second] = deleteButton;
+    }
+
+    if (doCallback) _cb();
+    resized();
+  }
+
+  void resized() override {
+    int row = 0;
+    auto bounds = getLocalBounds();
+
+    for (const auto& kvp : _enum->getStartToVals()) {
+      auto rowBounds = bounds.removeFromTop(_rowHeight);
+      _deletes[kvp.second]->setBounds(rowBounds.removeFromRight(50));
+      _starts[kvp.second]->setBounds(rowBounds.removeFromRight(100));
+      _names[kvp.second]->setBounds(rowBounds);
+    }
+
+    if (_add != nullptr) _add->setBounds(bounds);
+  }
+
+  int getTotalHeight() {
+    return _rowHeight * (_names.size() + 1) + 3;
+  }
+
+  //void paint(Graphics& g) override;
+
+  void textEditorReturnKeyPressed(TextEditor& e) override {
+    // Name change
+    // First check if name already exists. If so change text field BG to red.
+    string newName = e.getText().toStdString();
+    if (_names.count(newName) > 0) {
+      e.setColour(TextEditor::backgroundColourId, Colour(0xffff4d4d));
+      return;
+    }
+
+    e.setColour(TextEditor::backgroundColourId, Colours::white);
+    auto vals = _enum->getValsToStart();
+    int oldVal = vals[e.getText().toStdString()];
+    _enum->removeVal(e.getName().toStdString());
+    _enum->addVal(newName, oldVal);
+
+    initFields();
+  }
+
+  void textEditorFocusLost(TextEditor& e) override {
+    textEditorReturnKeyPressed(e);
+
+    if (e.getText() == e.getName()) {
+      e.setColour(TextEditor::backgroundColourId, Colours::white);
+    }
+  }
+
+  void buttonClicked(Button* b) {
+    // Confirm delete if add button not pressed.
+    // Note that if someone names their color parameter "add" for some reason
+    // we first kick them and then note that this won't work.
+    if (b->getName() != "add") {
+      juce::AlertWindow w("Delete Enumeration Option",
+        "Are you sure you want to delete " + b->getName() + "?",
+        juce::AlertWindow::WarningIcon);
+
+      w.addButton("Delete", 1, KeyPress(KeyPress::returnKey, 0, 0));
+      w.addButton("Cancel", 0, KeyPress(KeyPress::escapeKey, 0, 0));
+
+      if (w.runModalLoop() != 0) // is they picked 'delete'
+      {
+        _enum->removeVal(b->getName().toStdString());
+        initFields();
+      }
+    }
+    else {
+      juce::AlertWindow w("Add Enumeration Option",
+        "Add a new option to the enumeration parameter.",
+        juce::AlertWindow::QuestionIcon);
+
+      w.addTextEditor("name", "", "Name");
+
+      w.addButton("Add", 1, KeyPress(KeyPress::returnKey, 0, 0));
+      w.addButton("Cancel", 0, KeyPress(KeyPress::escapeKey, 0, 0));
+
+      if (w.runModalLoop() != 0) // is they picked 'add'
+      {
+        // this is the item they chose in the drop-down list..
+        string name = w.getTextEditor("name")->getText().toStdString();
+
+        if (_enum->getValsToStart().count(name) > 0) {
+          juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+            "Unable to add option",
+            "An option with the name \"" + name + "\" already exists.",
+            "OK");
+          return;
+        }
+
+        _enum->addVal(name, _enum->getHighestStartValue() + 1);
+
+        initFields();
+      }
+    }
+  }
+
+private:
+  LumiverseEnum* _enum;
+  function<void()> _cb;
+  int _rowHeight = 20;
+
+  map<string, ScopedPointer<TextEditor> > _names;
+  map<string, ScopedPointer<TextEditor> > _starts;
+  map<string, ScopedPointer<TextButton> > _deletes;
+  ScopedPointer<TextButton> _add;
+  ScopedPointer<startsFieldListener> _startsListener;
+
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LumiverseEnumValues);
+};
+
+class LumiverseEnumValuesProperty : public PropertyComponent {
+public:
+  LumiverseEnumValuesProperty(const String& propertyName, LumiverseEnum* data, function<void()> callback) :
+    PropertyComponent(propertyName), _enum(data), _cb(callback)
+  {
+    _comp = new LumiverseEnumValues(data, callback);
+    addAndMakeVisible(_comp);
+    preferredHeight = _comp->getTotalHeight();
+  }
+
+  ~LumiverseEnumValuesProperty() {
+    _comp = nullptr;
+  }
+
+  void refresh() override {
+    setPreferredHeight(_comp->getTotalHeight());
+    resized();
+    repaint();
+  }
+
+private:
+  ScopedPointer<LumiverseEnumValues> _comp;
+  LumiverseEnum* _enum;
+  function<void()> _cb;
+
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LumiverseEnumValuesProperty);
+};
+
 #endif  // PROFILEEDITORPROPERTIES_H_INCLUDED

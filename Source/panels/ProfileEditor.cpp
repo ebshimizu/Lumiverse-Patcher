@@ -16,7 +16,7 @@
 ProfileEditorComponent::ProfileEditorComponent()
 {
   _device = new Device("template", 0, "[New Device Type]");
-  _device->setParam("color", (LumiverseType*)new LumiverseColor(Lumiverse::BASIC_RGB));
+  _device->setParam("enum", (LumiverseType*)new LumiverseEnum());
 
   // When this initializes we don't have a file assigned.
   addAndMakeVisible(_browse = new TextButton("Open...", "Find a Profile to Open"));
@@ -119,9 +119,20 @@ void ProfileEditorComponent::reloadParameters() {
       _paramGUIs[p].add(new LumiverseColorWeightProperty("Weight", cData));
       if (cData->getMode() != BASIC_RGB && cData->getMode() != BASIC_CMY) {
         _paramGUIs[p].add(new LumiverseColorChannelsProperty("Channels", cData, [p, this]{ this->reloadAll(p); this->_params->resized(); }));
-        // Add basis vectors editor.
+        if (cData->getBasisVectors().size() > 0) {
+          _paramGUIs[p].add(new LumiverseColorBasisVectorsProperty("Color Basis Vectors", cData, []{}));
+        }
         _paramGUIs[p].add(new LumiverseColorBasisVectorButton(cData, [this]{ this->reloadParameters(); }));
       }
+    }
+    else if (data->getTypeName() == "enum") {
+      LumiverseEnum* eData = (LumiverseEnum*)data;
+      _paramGUIs[p].add(new LumiverseEnumDefaultProperty("Default", eData));
+      _paramGUIs[p].add(new LumiverseEnumTweakProperty("Tweak", eData));
+      _paramGUIs[p].add(new LumiverseEnumModeProperty("Mode", eData));
+      _paramGUIs[p].add(new LumiverseEnumInterpProperty("Interpolation Mode", eData));
+      _paramGUIs[p].add(new LumiverseEnumRangeMaxProperty("Max Value", eData));
+      _paramGUIs[p].add(new LumiverseEnumValuesProperty("Options", eData, [p, this]{ this->reloadAll(p); this->_params->resized(); }));
     }
 
     _paramGUIs[p].add(new DeleteParameterButton(_device, p, [&]{ reloadParameters(); }));
@@ -167,6 +178,7 @@ void ProfileEditorComponent::addParam() {
     }
     else if (typeChosen == 1) {
       // Enum
+      _device->setParam(name, (LumiverseType*)new LumiverseEnum());
     }
     else if (typeChosen == 2) {
       _device->setParam(name, (LumiverseType*)new LumiverseColor());
