@@ -16,7 +16,6 @@
 ProfileEditorComponent::ProfileEditorComponent()
 {
   _device = new Device("template", 0, "[New Device Type]");
-  _device->setMetadata("Hello", "world");
 
   // When this initializes we don't have a file assigned.
   addAndMakeVisible(_browse = new TextButton("Open...", "Find a Profile to Open"));
@@ -30,6 +29,18 @@ ProfileEditorComponent::ProfileEditorComponent()
   addAndMakeVisible(_addMetadata = new TextButton("Add Metadata", "Add a new Metadata Field"));
   _addMetadata->setName("AddMetadata");
   _addMetadata->addListener(this);
+
+  addAndMakeVisible(_saveAsButton = new TextButton("Save As...", "Save this profile as a different file."));
+  _saveAsButton->setName("SaveAs");
+  _saveAsButton->addListener(this);
+
+  addAndMakeVisible(_saveButton = new TextButton("Save", "Save this profile."));
+  _saveButton->setName("Save");
+  _saveButton->addListener(this);
+
+  addAndMakeVisible(_newButton = new TextButton("New", "New Profile"));
+  _newButton->setName("New");
+  _newButton->addListener(this);
 
   addAndMakeVisible(_dmxMap = new PropertyPanel("DMX Settings"));
   addAndMakeVisible(_params = new PropertyPanel("Parameters"));
@@ -45,6 +56,8 @@ ProfileEditorComponent::~ProfileEditorComponent()
   _browse = nullptr;
   _addMetadata = nullptr;
   _addParam = nullptr;
+  _saveAsButton = nullptr;
+  _saveButton = nullptr;
 }
 
 void ProfileEditorComponent::close() {
@@ -68,10 +81,10 @@ void ProfileEditorComponent::paint (Graphics& g)
     text = "New Profile";
   }
   else {
-    text = "Profile: " + _profile.getFullPathName();
+    text = "Profile: " + _profile.getFileName();
   }
   auto topRec = area.removeFromTop(30);
-  topRec.removeFromRight(100);
+  topRec.removeFromRight(300);
   g.drawFittedText(text, topRec, Justification::left, 1);
 
   g.setFont(16);
@@ -79,7 +92,7 @@ void ProfileEditorComponent::paint (Graphics& g)
 
   area.removeFromBottom(200);
   auto bottom = area.removeFromBottom(30);
-  g.drawFittedText("DMX Settings", bottom.removeFromRight(250), Justification::centredLeft, 1);
+  g.drawFittedText("DMX Settings", bottom.removeFromRight(275), Justification::centredLeft, 1);
   g.drawFittedText("Metadata", bottom, Justification::centredLeft, 1);
 }
 
@@ -89,17 +102,21 @@ void ProfileEditorComponent::resized()
 
   // Filename and browse button on top.
   area.reduce(3, 3);
-  _browse->setBounds(area.removeFromTop(30).removeFromRight(100));
+  auto top = area.removeFromTop(30);
+  _browse->setBounds(top.removeFromRight(75).reduced(3));
+  _saveAsButton->setBounds(top.removeFromRight(75).reduced(3));
+  _saveButton->setBounds(top.removeFromRight(75).reduced(3));
+  _newButton->setBounds(top.removeFromRight(75).reduced(3));
 
   _addParam->setBounds(area.removeFromTop(30).removeFromBottom(20).removeFromRight(100));
 
   auto bottom = area.removeFromBottom(200);
-  _dmxMap->setBounds(bottom.removeFromRight(250));
+  _dmxMap->setBounds(bottom.removeFromRight(275));
   _metadata->setBounds(bottom);
 
   area.removeFromBottom(5);
   auto metadataRegion = area.removeFromBottom(20);
-  metadataRegion.removeFromRight(255);
+  metadataRegion.removeFromRight(280);
   _addMetadata->setBounds(metadataRegion.removeFromRight(100));
 
   _params->setBounds(area);
@@ -111,6 +128,24 @@ void ProfileEditorComponent::buttonClicked(Button* b) {
   }
   if (b->getName() == "AddMetadata") {
     addMetadata();
+  }
+  if (b->getName() == "SaveAs") {
+    saveAs();
+  }
+  if (b->getName() == "Save") {
+    save();
+  }
+  if (b->getName() == "Browse") {
+    open();
+  }
+  if (b->getName() == "New") {
+    delete _device;
+    _device = new Device("template", 1, "[New Device Type]");
+    _dmxMapData.clear();
+    _profile = "";
+    reloadParameters();
+    reloadMetadata();
+    repaint();
   }
 }
 
@@ -314,6 +349,151 @@ void ProfileEditorComponent::reloadAll(string paramName) {
     auto pc = (PropertyComponent*)c;
     pc->refresh();
   }
+}
+
+void ProfileEditorComponent::saveAs() {
+  FileChooser fc("Save as...",
+    File::getCurrentWorkingDirectory(),
+    "*.profile.json",
+    true);
+
+  if (fc.browseForFileToSave(true))
+  {
+    _profile = fc.getResult();
+    writeProfile();
+  }
+}
+
+void ProfileEditorComponent::save() {
+  if (!_profile.exists()) {
+    saveAs();
+    return;
+  }
+
+  writeProfile();
+}
+
+void ProfileEditorComponent::writeProfile() {
+  // Update the device name based on profile file name
+  String fileName = _profile.getFileName();
+  fileName = fileName.upToFirstOccurrenceOf(".", false, false);
+
+  _device->setType(fileName.toStdString());
+
+  // Create JSON Node consisting of device and DMX data
+  JSONNode profile;
+
+  profile.push_back(JSONNode("info", "Lumiverse Device Profile"));
+  profile.push_back(JSONNode("version", 1));
+  profile.push_back(_device->toJSON());
+
+  JSONNode dmx;
+  dmx.set_name("dmxMap");
+
+  for (auto d : _dmxMapData) {
+    JSONNode mapping;
+    mapping.set_name(d.first);
+    mapping.push_back(JSONNode("start", d.second.startAddress));
+#ifdef USE_C11_MAPS
+    mapping.push_back(JSONNode("ctype", convTypeToString[d.second.type]));
+#else
+    mapping.push_back(JSONNode("ctype", convTypeToString(d.second.type)));
+#endif
+    dmx.push_back(mapping.as_array());
+  }
+
+  profile.push_back(dmx);
+
+  ofstream prof;
+  prof.open(_profile.getFullPathName().toStdString(), ios::out | ios::trunc);
+  prof << profile.write_formatted();
+  prof.close();
+
+  repaint();
+}
+
+void ProfileEditorComponent::open() {
+  // TODO: CHANGE HARDCODED PATH TO USER SPECIFIED
+  FileChooser fc("Load Lumiverse Rig",
+    File::getCurrentWorkingDirectory().getChildFile("~/Lumiverse/profiles"),
+    "*.profile.json",
+    true);
+
+  if (fc.browseForFileToOpen())
+  {
+    String chosen;
+    chosen << fc.getResults().getReference(0).getFullPathName();
+
+    _profile = fc.getResult();
+
+    // Check to see if we can load the file.
+    ifstream data;
+    data.open(_profile.getFullPathName().toStdString(), ios::in | ios::binary | ios::ate);
+
+    if (data.is_open()) {
+      // "+ 1" for the ending
+      streamoff size = data.tellg();
+      char* memblock = new char[(unsigned int)size + 1];
+
+      data.seekg(0, ios::beg);
+
+      data.read(memblock, size);
+      data.close();
+
+      // It's not guaranteed that the following memory after memblock is blank.
+      // C-style string needs an end.
+      memblock[size] = '\0';
+
+      JSONNode n = libjson::parse(memblock);
+
+      // Load
+      // Profiles have two fields: template and dmxMap. Template is the device, dmxMap is the DMX map
+      auto d = n.find("template");
+      if (d == n.end()) {
+        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+          "Unable to load profile",
+          "The profile does not have the required template device defined.",
+          "OK");
+        delete memblock;
+        return;
+      }
+
+      // Make new device
+      delete _device;
+      _device = new Device("template", *d);
+
+      // load DMX map
+      auto i = n.find("dmxMap");
+      if (i == n.end()) {
+        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+          "Unable to load profile",
+          "The profile does not have the required DMX Map defined.",
+          "OK");
+        delete memblock;
+        return;
+      }
+
+      _dmxMapData.clear();
+      auto j = i->begin();
+      while (j != i->end()) {
+        string paramName = j->name();
+
+        // This assumes the next piece of data is arranged in a [ int, string ] format
+        unsigned int addr = (*j)[0].as_int();
+        string conversion = (*j)[1].as_string();
+
+        _dmxMapData[paramName] = patchData(addr, conversion);
+
+        ++j;
+      }
+
+      delete memblock;
+    }
+  }
+
+  reloadParameters();
+  reloadMetadata();
+  repaint();
 }
 
 //==============================================================================

@@ -60,7 +60,11 @@ public:
     saveAs = 0x0006,
 
     // Device
-    openProfileEditor = 0x1001
+    openProfileEditor = 0x1001,
+    addDevices = 0x1002,
+
+    // Patch
+    addPatch = 0x2001
   };
 
   // Apparently we just leave this here to implement tooltips?

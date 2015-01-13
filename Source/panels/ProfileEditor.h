@@ -53,6 +53,9 @@ private:
   ScopedPointer<TextButton> _browse;
   ScopedPointer<TextButton> _addParam;
   ScopedPointer<TextButton> _addMetadata;
+  ScopedPointer<TextButton> _saveButton;
+  ScopedPointer<TextButton> _saveAsButton;
+  ScopedPointer<TextButton> _newButton;
   ScopedPointer<PropertyPanel> _params;
   ScopedPointer<PropertyPanel> _metadata;
   ScopedPointer<PropertyPanel> _dmxMap;
@@ -60,6 +63,10 @@ private:
   void addParam();
   void addMetadata();
   void reloadAll(string paramName);
+  void saveAs();
+  void save();
+  void open();
+  void writeProfile();
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ProfileEditorComponent);
 };
