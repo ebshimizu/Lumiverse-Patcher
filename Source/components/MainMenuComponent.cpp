@@ -27,6 +27,9 @@ PopupMenu MainMenuComponent::getMenuForIndex(int menuIndex, const String& /*menu
     menu.addCommandItem(commandManager, MainWindow::open);
     menu.addCommandItem(commandManager, MainWindow::save);
     menu.addCommandItem(commandManager, MainWindow::saveAs);
+    menu.addSeparator();
+    menu.addCommandItem(commandManager, MainWindow::loadProfiles);
+    menu.addCommandItem(commandManager, MainWindow::setProfileLocation);
   }
   else if (menuIndex == 1) {
     menu.addCommandItem(commandManager, MainWindow::openProfileEditor);

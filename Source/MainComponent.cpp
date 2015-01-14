@@ -13,7 +13,7 @@
 #include "LumiverseCore.h"
 using namespace Lumiverse;
 
-//==============================================================================
+ //==============================================================================
 MainContentComponent::MainContentComponent()
 {
   addAndMakeVisible(m_dp = new DevicePanel());
@@ -25,6 +25,8 @@ MainContentComponent::MainContentComponent()
   m_layout.setItemLayout(2, -0.25, -0.75, -0.35);
 
   setSize (1024, 768);
+
+  loadProfiles();
 }
 
 MainContentComponent::~MainContentComponent()
@@ -32,6 +34,8 @@ MainContentComponent::~MainContentComponent()
   if (_profileEditorWindow != nullptr) {
     _profileEditorWindow.deleteAndZero();
   }
+
+  deleteProfiles();
 }
 
 void MainContentComponent::paint (Graphics& g)
@@ -65,7 +69,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
   // this returns the set of all commands that this target can perform..
   const CommandID ids[] = {
     MainWindow::open, MainWindow::save, MainWindow::saveAs, MainWindow::openProfileEditor,
-    MainWindow::addPatch, MainWindow::deletePatch
+    MainWindow::addPatch, MainWindow::deletePatch, MainWindow::loadProfiles, MainWindow::setProfileLocation
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -102,6 +106,13 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
   case MainWindow::deletePatch:
     result.setInfo("Delete Patch...", "Deletes a Patch from the Rig", patchCategory, 0);
     break;
+  case MainWindow::loadProfiles:
+    result.setInfo("Reload Profiles", "Reloads the profiles from the profiles directory", generalCategory, 0);
+    result.addDefaultKeypress(KeyPress::F5Key, ModifierKeys::noModifiers);
+    break;
+  case MainWindow::setProfileLocation:
+    result.setInfo("Set Profiles Folder", "Sets the location to read profiles from", generalCategory, 0);
+    break;
   default:
     break;
   }
@@ -128,6 +139,12 @@ bool MainContentComponent::perform(const InvocationInfo& info)
     break;
   case MainWindow::deletePatch:
     deletePatch();
+    break;
+  case MainWindow::loadProfiles:
+    loadProfiles();
+    break;
+  case MainWindow::setProfileLocation:
+    setProfileLocation();
     break;
   default:
     return false;
@@ -310,6 +327,103 @@ void MainContentComponent::deletePatch() {
   }
 }
 
+void MainContentComponent::loadProfiles() {
+  deleteProfiles();
+  (new ProfileLoader(this))->launchThread();
+}
+
+void MainContentComponent::deleteProfiles() {
+  for (const auto& kvp : _deviceProfiles) {
+    delete kvp.second;
+  }
+  _deviceProfiles.clear();
+  _dmxProfiles.clear();
+}
+
+
+bool MainContentComponent::loadProfile(string filename) {
+  // Check to see if we can load the file.
+  ifstream data;
+  data.open(filename, ios::in | ios::binary | ios::ate);
+
+  if (data.is_open()) {
+    // "+ 1" for the ending
+    streamoff size = data.tellg();
+    char* memblock = new char[(unsigned int)size + 1];
+
+    data.seekg(0, ios::beg);
+
+    data.read(memblock, size);
+    data.close();
+
+    // It's not guaranteed that the following memory after memblock is blank.
+    // C-style string needs an end.
+    memblock[size] = '\0';
+
+    JSONNode n = libjson::parse(memblock);
+
+    // Load
+    // Profiles have two fields: template and dmxMap. Template is the device, dmxMap is the DMX map
+    auto d = n.find("template");
+    if (d == n.end()) {
+      return false;
+    }
+
+    // load DMX map
+    auto i = n.find("dmxMap");
+    if (i == n.end()) {
+      return false;
+    }
+
+    map <string, patchData> dmxMapData;
+    auto j = i->begin();
+    while (j != i->end()) {
+      string paramName = j->name();
+
+      // This assumes the next piece of data is arranged in a [ int, string ] format
+      unsigned int addr = (*j)[0].as_int();
+      string conversion = (*j)[1].as_string();
+
+      dmxMapData[paramName] = patchData(addr, conversion);
+
+      ++j;
+    }
+
+    // Make new device
+    Device* newDevice = new Device("template", *d);
+
+    // assign to proper location if not exist already
+    if (_deviceProfiles.count(newDevice->getType()) != 0) {
+      delete newDevice;
+      delete memblock;
+      return false;
+    }
+
+    _deviceProfiles[newDevice->getType()] = newDevice;
+    _dmxProfiles[newDevice->getType()] = dmxMapData;
+
+    delete memblock;
+  }
+  else {
+    return false;
+  }
+
+  return true;
+}
+
+void MainContentComponent::setProfileLocation() {
+  FileChooser fc("Select Profiles Folder",
+    File(MainWindow::getPropertiesFile()->getValue("profilePath")),
+    "", true);
+
+  if (fc.browseForDirectory()) {
+    String chosen = fc.getResults().getReference(0).getFullPathName();
+    MainWindow::getPropertiesFile()->setValue("profilePath", chosen);
+    loadProfiles();
+    reload();
+  }
+}
+
 void MainContentComponent::openProfileEditor() {
   if (_profileEditorWindow == nullptr) {
     ProfileEditor* profileEditorWindow = new ProfileEditor("Profile Editor", Colours::white, DocumentWindow::allButtons);
@@ -320,4 +434,61 @@ void MainContentComponent::openProfileEditor() {
 
     _profileEditorWindow = profileEditorWindow;
   }
+}
+
+//==============================================================================
+
+ProfileLoader::ProfileLoader(MainContentComponent* mc) : 
+  ThreadWithProgressWindow("Loading Profiles", true, true), _mc(mc)
+{
+  setStatusMessage("Getting ready...");
+}
+
+void ProfileLoader::run()
+{
+  setProgress(-1.0); // setting a value beyond the range 0 -> 1 will show a spinning bar..
+
+  // scan the number of files in the profiles directory.
+  File profDir(MainWindow::getPropertiesFile()->getValue("profilePath"));
+  Array<File> profiles;
+  profDir.findChildFiles(profiles, File::TypesOfFileToFind::findFiles, true, "*.profile.json");
+
+  const int profilesFound = profiles.size();
+  int _profilesLoaded = 0;
+
+  for (int i = 0; i < profilesFound; ++i)
+  {
+    // must check this as often as possible, because this is
+    // how we know if the user's pressed 'cancel'
+    if (threadShouldExit())
+      return;
+
+    // this will update the progress bar on the dialog box
+    setProgress(i / (double)profilesFound);
+    setStatusMessage("Loading " + profiles[i].getFileName());
+
+    // Load the profile.
+    bool res = _mc->loadProfile(profiles[i].getFullPathName().toStdString());
+    if (res) _profilesLoaded++;
+
+    wait(5);
+  }
+
+  setProgress(-1.0); // setting a value beyond the range 0 -> 1 will show a spinning bar..
+  setStatusMessage("Loaded " + String(_profilesLoaded) + " profiles successfully. (found " + String(profilesFound) + ")");
+  wait(3000);
+}
+
+// This method gets called on the message thread once our thread has finished..
+void ProfileLoader::threadComplete(bool userPressedCancel)
+{
+  if (userPressedCancel)
+  {
+    AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon,
+      "Load Profiles",
+      "Profile load interrupted. Not all profiles have been loaded.");
+  }
+
+  // ..and clean up by deleting our thread object..
+  delete this;
 }

@@ -46,6 +46,7 @@ private:
 
 static ScopedPointer<ApplicationCommandManager> applicationCommandManager;
 static unique_ptr<Rig> rig;
+static unique_ptr<PropertiesFile> _prefs;
 
 MainWindow::MainWindow (String name) :
   DocumentWindow (name, Colours::lightgrey, DocumentWindow::allButtons)
@@ -79,6 +80,13 @@ MainWindow::~MainWindow() {
   if (rig != nullptr) {
     rig->stop();
   }
+
+  if (_prefs != nullptr) {
+    _prefs->save();
+  }
+
+  delete _prefs.release();
+  delete rig.release();
 }
 
 void MainWindow::closeButtonPressed()
@@ -102,6 +110,28 @@ unique_ptr<Rig>& MainWindow::getRig() {
   }
 
   return rig;
+}
+
+unique_ptr<PropertiesFile>& MainWindow::getPropertiesFile() {
+  if (_prefs == nullptr) {
+    // Load and initialize properties file (if needed)
+    PropertiesFile::Options opt;
+    opt.applicationName = "Lumiverse Patcher";
+    opt.filenameSuffix = ".pref";
+    opt.folderName = "Lumiverse";
+    opt.osxLibrarySubFolder = "Lumiverse";
+    opt.commonToAllUsers = false;
+    opt.storageFormat = PropertiesFile::StorageFormat::storeAsXML;
+    _prefs = unique_ptr<PropertiesFile>(new PropertiesFile(opt));
+
+    // Initialize if file not found
+    if (_prefs->getValue("profilePath").isEmpty()) {
+      _prefs->setValue("profilePath", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("Lumiverse/profiles").getFullPathName());
+      _prefs->save();
+    }
+  }
+
+  return _prefs;
 }
 
 MainWindow* MainWindow::getMainWindow()

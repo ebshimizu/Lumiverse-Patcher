@@ -11,6 +11,7 @@
 #include "../../JuceLibraryCode/JuceHeader.h"
 #include "ProfileEditor.h"
 #include "../components/ProfileEditorProperties.h"
+#include "../Main.h"
 
 //==============================================================================
 ProfileEditorComponent::ProfileEditorComponent()
@@ -414,8 +415,8 @@ void ProfileEditorComponent::writeProfile() {
 
 void ProfileEditorComponent::open() {
   // TODO: CHANGE HARDCODED PATH TO USER SPECIFIED
-  FileChooser fc("Load Lumiverse Rig",
-    File::getCurrentWorkingDirectory().getChildFile("~/Lumiverse/profiles"),
+  FileChooser fc("Load Lumiverse Profile",
+    File(MainWindow::getPropertiesFile()->getValue("profilePath")),
     "*.profile.json",
     true);
 

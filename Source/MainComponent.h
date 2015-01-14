@@ -43,6 +43,8 @@ public:
   // reloads various parts of the GUI as needed. 
   void reload();
 
+  bool loadProfile(string filename);
+
 private:
   //==============================================================================
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainContentComponent)
@@ -55,6 +57,9 @@ private:
   void openProfileEditor();
   void addPatch();
   void deletePatch();
+  void loadProfiles();
+  void deleteProfiles();
+  void setProfileLocation();
 
   string m_rigName;
   File m_parentDir;
@@ -64,7 +69,24 @@ private:
   ScopedPointer<StretchableLayoutResizerBar> m_rb;
   SafePointer<Component> _profileEditorWindow;
   StretchableLayoutManager m_layout;
+
+  map<string, Device*> _deviceProfiles;
+  map<string, map<string, patchData> > _dmxProfiles;
 };
 
+//==============================================================================
+class ProfileLoader : public ThreadWithProgressWindow
+{
+public:
+  ProfileLoader(MainContentComponent* mc);
+
+  void run() override;
+
+  // This method gets called on the message thread once our thread has finished..
+  void threadComplete(bool userPressedCancel) override;
+private:
+  MainContentComponent* _mc;
+  int _profilesLoaded;
+};
 
 #endif  // MAINCOMPONENT_H_INCLUDED
