@@ -65,7 +65,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
   // this returns the set of all commands that this target can perform..
   const CommandID ids[] = {
     MainWindow::open, MainWindow::save, MainWindow::saveAs, MainWindow::openProfileEditor,
-    MainWindow::addPatch
+    MainWindow::addPatch, MainWindow::deletePatch
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -99,6 +99,9 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
     result.setInfo("Add Patch...", "Adds a new patch to the rig.", patchCategory, 0);
     result.addDefaultKeypress('p', ModifierKeys::ctrlModifier);
     break;
+  case MainWindow::deletePatch:
+    result.setInfo("Delete Patch...", "Deletes a Patch from the Rig", patchCategory, 0);
+    break;
   default:
     break;
   }
@@ -122,6 +125,9 @@ bool MainContentComponent::perform(const InvocationInfo& info)
     break;
   case MainWindow::addPatch:
     addPatch();
+    break;
+  case MainWindow::deletePatch:
+    deletePatch();
     break;
   default:
     return false;
@@ -262,6 +268,45 @@ void MainContentComponent::addPatch() {
     MainWindow::getRig()->init();
     MainWindow::getRig()->run();
     reload();
+  }
+}
+
+void MainContentComponent::deletePatch() {
+  juce::AlertWindow w("Delete Patch",
+    "Delete a Patch from the Rig",
+    juce::AlertWindow::WarningIcon);
+
+  StringArray patches;
+  for (const auto& p : MainWindow::getRig()->getPatches()) {
+    patches.add(p.first);
+  }
+
+  w.addComboBox("patch", patches, "Patch");
+
+  w.addButton("Delete", 1, KeyPress(KeyPress::returnKey, 0, 0));
+  w.addButton("Cancel", 0, KeyPress(KeyPress::escapeKey, 0, 0));
+
+  if (w.runModalLoop() != 0) {
+    int patch = w.getComboBoxComponent("patch")->getSelectedItemIndex();
+
+    juce::AlertWindow w("Delete Patch",
+      "Are you sure you want to delete this Patch? All Patch information will be deleted from the Rig.\nThis action is not undoable.",
+      juce::AlertWindow::WarningIcon);
+
+    w.addButton("Delete", 1, KeyPress(KeyPress::returnKey, 0, 0));
+    w.addButton("Cancel", 0, KeyPress(KeyPress::escapeKey, 0, 0));
+
+    if (w.runModalLoop() != 0) // is they picked 'delete'
+    {
+      MainWindow::getRig()->stop();
+
+      string patchID = patches[patch].toStdString();
+      MainWindow::getRig()->deletePatch(patchID);
+
+      MainWindow::getRig()->init();
+      MainWindow::getRig()->run();
+      reload();
+    }
   }
 }
 

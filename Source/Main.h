@@ -64,7 +64,8 @@ public:
     addDevices = 0x1002,
 
     // Patch
-    addPatch = 0x2001
+    addPatch = 0x2001,
+    deletePatch = 0x2002
   };
 
   // Apparently we just leave this here to implement tooltips?

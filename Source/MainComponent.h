@@ -54,6 +54,7 @@ private:
   void saveAs();
   void openProfileEditor();
   void addPatch();
+  void deletePatch();
 
   string m_rigName;
   File m_parentDir;
