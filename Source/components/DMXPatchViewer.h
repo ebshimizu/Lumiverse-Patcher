@@ -13,7 +13,9 @@
 
 #include "../../JuceLibraryCode/JuceHeader.h"
 #include "DMXMap.h"
+#include "LumiverseCore.h"
 
+using namespace Lumiverse;
 //==============================================================================
 /*
 */
@@ -36,16 +38,27 @@ public:
 
   void addInterface();
 
+  void addUniverse();
+
 private:
   void addArtNetInterface(string name);
   void addKiNetInterface(string name);
   void addDMXPro2Interface(string name);
 
+  void editArtNetInterface(ArtNetInterface* iface);
+  void editKiNetInterface(KiNetInterface* iface);
+  void editDMXPro2Interface(DMXPro2Interface* iface);
+
+  void editUniverse(string name, int univ);
+
+  PopupMenu getInterfaceList();
+  PopupMenu getUniverseList();
+
   ComboBox _universeList;
   string _patchID;
 
   ScopedPointer<DMXMap> _dm;
-  ScopedPointer<TextButton> _addUniverseButton;
+  ScopedPointer<TextButton> _addUniverse;
   ScopedPointer<TextButton> _editUniverse;
   ScopedPointer<TextButton> _deleteUniverse;
   ScopedPointer<TextButton> _addInterface;

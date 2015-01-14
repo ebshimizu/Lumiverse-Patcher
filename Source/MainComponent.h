@@ -53,6 +53,7 @@ private:
   void save();
   void saveAs();
   void openProfileEditor();
+  void addPatch();
 
   string m_rigName;
   File m_parentDir;

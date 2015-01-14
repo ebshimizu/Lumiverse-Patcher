@@ -64,7 +64,8 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
 {
   // this returns the set of all commands that this target can perform..
   const CommandID ids[] = {
-    MainWindow::open, MainWindow::save, MainWindow::saveAs, MainWindow::openProfileEditor
+    MainWindow::open, MainWindow::save, MainWindow::saveAs, MainWindow::openProfileEditor,
+    MainWindow::addPatch
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -94,6 +95,10 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
     result.setInfo("Open Profile Editor", "Opens the Profile Editor window.", deviceCategory, 0);
     result.addDefaultKeypress(KeyPress::F2Key, ModifierKeys::noModifiers);
     break;
+  case MainWindow::addPatch:
+    result.setInfo("Add Patch...", "Adds a new patch to the rig.", patchCategory, 0);
+    result.addDefaultKeypress('p', ModifierKeys::ctrlModifier);
+    break;
   default:
     break;
   }
@@ -114,6 +119,9 @@ bool MainContentComponent::perform(const InvocationInfo& info)
     break;
   case MainWindow::openProfileEditor:
     openProfileEditor();
+    break;
+  case MainWindow::addPatch:
+    addPatch();
     break;
   default:
     return false;
@@ -213,6 +221,47 @@ void MainContentComponent::saveAs() {
     else {
       AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon, "Failed to save Rig.", "Try again or save under a different file name.", "OK");
     }
+  }
+}
+
+void MainContentComponent::addPatch() {
+  juce::AlertWindow w("Add Patch",
+    "Add a Patch to the Rig",
+    juce::AlertWindow::QuestionIcon);
+
+  StringArray types;
+  types.add("DMX");
+
+  w.addTextEditor("name", "", "Patch ID");
+  w.addComboBox("type", types, "Type");
+
+  w.addButton("Add", 1, KeyPress(KeyPress::returnKey, 0, 0));
+  w.addButton("Cancel", 0, KeyPress(KeyPress::escapeKey, 0, 0));
+
+  if (w.runModalLoop() != 0) {
+    string id = w.getTextEditor("name")->getText().toStdString();
+    int type = w.getComboBoxComponent("type")->getSelectedItemIndex();
+
+    // Check for duplicate patch name
+    if (MainWindow::getRig()->getPatch(id) != nullptr) {
+      juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+        "Unable to add Patch",
+        "An Patch with the name \"" + id + "\" already exists.",
+        "OK");
+      return;
+    }
+
+    MainWindow::getRig()->stop();
+
+    if (type == 0) {
+      // DMX Patch
+      DMXPatch* p = new DMXPatch();
+      MainWindow::getRig()->addPatch(id, (Patch*)p);
+    }
+
+    MainWindow::getRig()->init();
+    MainWindow::getRig()->run();
+    reload();
   }
 }
 

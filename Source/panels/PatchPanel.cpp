@@ -33,7 +33,7 @@ void PatchPanel::reload() {
   auto& rigRef = MainWindow::getRig();
 
   for (const auto& p : rigRef->getPatches()) {
-    _tc->addTab(p.first, Colour(0xff0c0c0c), new DMXPatchViewer(p.first), true);
+    _tc->addTab(p.first, Colour(0xff000040), new DMXPatchViewer(p.first), true);
   }
 }
 
