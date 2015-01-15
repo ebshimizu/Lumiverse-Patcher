@@ -60,6 +60,7 @@ private:
   void loadProfiles();
   void deleteProfiles();
   void setProfileLocation();
+  void addDevices();
 
   string m_rigName;
   File m_parentDir;

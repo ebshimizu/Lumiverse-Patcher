@@ -69,7 +69,8 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
   // this returns the set of all commands that this target can perform..
   const CommandID ids[] = {
     MainWindow::open, MainWindow::save, MainWindow::saveAs, MainWindow::openProfileEditor,
-    MainWindow::addPatch, MainWindow::deletePatch, MainWindow::loadProfiles, MainWindow::setProfileLocation
+    MainWindow::addPatch, MainWindow::deletePatch, MainWindow::loadProfiles, MainWindow::setProfileLocation,
+    MainWindow::addDevices
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -113,6 +114,10 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
   case MainWindow::setProfileLocation:
     result.setInfo("Set Profiles Folder", "Sets the location to read profiles from", generalCategory, 0);
     break;
+  case MainWindow::addDevices:
+    result.setInfo("Add Devices", "Adds devices to the Rig.", deviceCategory, 0);
+    result.addDefaultKeypress('a', ModifierKeys::noModifiers);
+    break;
   default:
     break;
   }
@@ -145,6 +150,9 @@ bool MainContentComponent::perform(const InvocationInfo& info)
     break;
   case MainWindow::setProfileLocation:
     setProfileLocation();
+    break;
+  case MainWindow::addDevices:
+    addDevices();
     break;
   default:
     return false;
@@ -420,6 +428,95 @@ void MainContentComponent::setProfileLocation() {
     String chosen = fc.getResults().getReference(0).getFullPathName();
     MainWindow::getPropertiesFile()->setValue("profilePath", chosen);
     loadProfiles();
+    reload();
+  }
+}
+
+void MainContentComponent::addDevices() {
+  if (MainWindow::getRig()->getPatches().size() == 0) {
+    juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+      "Unable to add Devices",
+      "No patches are defined for the Rig",
+      "OK");
+    return;
+  }
+
+  juce::AlertWindow w("Add Devices",
+    "Add devices to the Rig",
+    juce::AlertWindow::QuestionIcon);
+
+  StringArray profiles;
+  for (const auto& kvp : _deviceProfiles) {
+    profiles.add(kvp.first);
+  }
+
+  StringArray patches;
+  for (const auto& kvp : MainWindow::getRig()->getPatches()) {
+    patches.add(kvp.first);
+  }
+
+  w.addTextEditor("name", "", "Device Base ID");
+  w.addTextEditor("channel", "", "Channel");
+  w.addTextEditor("number", "1", "Quantity");
+  w.addTextEditor("universe", "", "Universe");
+  w.addTextEditor("addr", "", "Address");
+  w.addComboBox("type", profiles, "Device Type");
+  w.addComboBox("patch", patches, "Patch");
+
+  w.addButton("Add", 1, KeyPress(KeyPress::returnKey, 0, 0));
+  w.addButton("Cancel", 0, KeyPress(KeyPress::escapeKey, 0, 0));
+
+  if (w.runModalLoop() != 0) {
+    string id = w.getTextEditor("name")->getText().toStdString();
+    string profileName = profiles[w.getComboBoxComponent("type")->getSelectedItemIndex()].toStdString();
+    Patch* patch = MainWindow::getRig()->getPatch(patches[w.getComboBoxComponent("patch")->getSelectedItemIndex()].toStdString());
+    int quantity = w.getTextEditor("number")->getText().getIntValue();
+    int universe = w.getTextEditor("universe")->getText().getIntValue() - 1;
+    int addr = w.getTextEditor("addr")->getText().getIntValue() - 1;
+    int channel = w.getTextEditor("channel")->getText().getIntValue();
+
+    MainWindow::getRig()->stop();
+
+    // retrieve the profiles
+    Device* p = _deviceProfiles[profileName];
+    auto d = _dmxProfiles[profileName];
+
+    for (int i = 0; i < quantity; i++) {
+      // Add the device
+      String newId = id + ((quantity > 1) ? String(i) : "");
+
+      if (MainWindow::getRig()->getDevice(newId.toStdString()) != nullptr) {
+        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+          "Unable to add Device " + newId,
+          "Device with this ID already exists in the Rig.",
+          "OK");
+        return;
+      }
+      
+      Device* newDevice = new Device(newId.toStdString(), p);
+      newDevice->setChannel(channel + i);
+      MainWindow::getRig()->addDevice(newDevice);
+
+      // Patch the device
+      if (patch->getType() == "DMXPatch" && !w.getTextEditor("universe")->isEmpty() && !w.getTextEditor("addr")->isEmpty()) {
+        DMXPatch* p = (DMXPatch*)patch;
+        p->addDeviceMap(profileName, _dmxProfiles[profileName]);
+
+        // Check to see if device fits in universe
+        if (addr + p->sizeOfDeviceMap(profileName) > 512) {
+          // wrap around to new universe.
+          // note that we don't check conflicts. User is supposed to do that.
+          universe++;
+          addr = 0;
+        }
+
+        p->patchDevice(newId.toStdString(), new DMXDevicePatch(profileName, addr, universe));
+        addr += p->sizeOfDeviceMap(profileName);
+      }
+    }
+
+    MainWindow::getRig()->init();
+    MainWindow::getRig()->run();
     reload();
   }
 }
