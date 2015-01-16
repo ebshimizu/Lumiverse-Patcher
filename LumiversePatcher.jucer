@@ -15,6 +15,13 @@
         <FILE id="VdImkn" name="DevicePanel.h" compile="0" resource="0" file="Source/panels/DevicePanel.h"/>
       </GROUP>
       <GROUP id="{56C52D8C-F265-C43F-A440-D64F12FA2942}" name="components">
+        <FILE id="TOqzly" name="ControlsPanel.cpp" compile="1" resource="0"
+              file="Source/components/ControlsPanel.cpp"/>
+        <FILE id="QOAekr" name="ControlsPanel.h" compile="0" resource="0" file="Source/components/ControlsPanel.h"/>
+        <FILE id="blcyPJ" name="LumiverseEnumPropertyComponent.cpp" compile="1"
+              resource="0" file="Source/components/LumiverseEnumPropertyComponent.cpp"/>
+        <FILE id="owGMRm" name="LumiverseEnumPropertyComponent.h" compile="0"
+              resource="0" file="Source/components/LumiverseEnumPropertyComponent.h"/>
         <FILE id="nWONFR" name="ProfileEditorProperties.h" compile="0" resource="0"
               file="Source/components/ProfileEditorProperties.h"/>
         <FILE id="e7D5ml" name="DMXPatchViewer.cpp" compile="1" resource="0"

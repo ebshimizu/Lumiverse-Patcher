@@ -54,6 +54,8 @@ OBJECTS := \
   $(OBJDIR)/ProfileEditor_1edc7e9f.o \
   $(OBJDIR)/PatchPanel_928d8d5d.o \
   $(OBJDIR)/DevicePanel_f18dec77.o \
+  $(OBJDIR)/ControlsPanel_e602597e.o \
+  $(OBJDIR)/LumiverseEnumPropertyComponent_6be7b5d1.o \
   $(OBJDIR)/DMXPatchViewer_457f37a5.o \
   $(OBJDIR)/DMXMap_be68987.o \
   $(OBJDIR)/DeviceTable_10fbcd68.o \
@@ -104,6 +106,16 @@ $(OBJDIR)/PatchPanel_928d8d5d.o: ../../Source/panels/PatchPanel.cpp
 $(OBJDIR)/DevicePanel_f18dec77.o: ../../Source/panels/DevicePanel.cpp
 	-@mkdir -p $(OBJDIR)
 	@echo "Compiling DevicePanel.cpp"
+	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
+
+$(OBJDIR)/ControlsPanel_e602597e.o: ../../Source/components/ControlsPanel.cpp
+	-@mkdir -p $(OBJDIR)
+	@echo "Compiling ControlsPanel.cpp"
+	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
+
+$(OBJDIR)/LumiverseEnumPropertyComponent_6be7b5d1.o: ../../Source/components/LumiverseEnumPropertyComponent.cpp
+	-@mkdir -p $(OBJDIR)
+	@echo "Compiling LumiverseEnumPropertyComponent.cpp"
 	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 
 $(OBJDIR)/DMXPatchViewer_457f37a5.o: ../../Source/components/DMXPatchViewer.cpp

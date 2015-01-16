@@ -316,6 +316,12 @@
     <ClCompile Include="..\..\Source\panels\DevicePanel.cpp">
       <Filter>LumiversePatcher\Source\panels</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\components\ControlsPanel.cpp">
+      <Filter>LumiversePatcher\Source\components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\components\LumiverseEnumPropertyComponent.cpp">
+      <Filter>LumiversePatcher\Source\components</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\components\DMXPatchViewer.cpp">
       <Filter>LumiversePatcher\Source\components</Filter>
     </ClCompile>
@@ -1544,6 +1550,12 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\panels\DevicePanel.h">
       <Filter>LumiversePatcher\Source\panels</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\components\ControlsPanel.h">
+      <Filter>LumiversePatcher\Source\components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\components\LumiverseEnumPropertyComponent.h">
+      <Filter>LumiversePatcher\Source\components</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\components\ProfileEditorProperties.h">
       <Filter>LumiversePatcher\Source\components</Filter>

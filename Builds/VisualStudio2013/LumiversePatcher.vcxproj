@@ -139,6 +139,8 @@
     <ClCompile Include="..\..\Source\panels\ProfileEditor.cpp"/>
     <ClCompile Include="..\..\Source\panels\PatchPanel.cpp"/>
     <ClCompile Include="..\..\Source\panels\DevicePanel.cpp"/>
+    <ClCompile Include="..\..\Source\components\ControlsPanel.cpp"/>
+    <ClCompile Include="..\..\Source\components\LumiverseEnumPropertyComponent.cpp"/>
     <ClCompile Include="..\..\Source\components\DMXPatchViewer.cpp"/>
     <ClCompile Include="..\..\Source\components\DMXMap.cpp"/>
     <ClCompile Include="..\..\Source\components\DeviceTable.cpp"/>
@@ -1249,6 +1251,8 @@
     <ClInclude Include="..\..\Source\panels\ProfileEditor.h"/>
     <ClInclude Include="..\..\Source\panels\PatchPanel.h"/>
     <ClInclude Include="..\..\Source\panels\DevicePanel.h"/>
+    <ClInclude Include="..\..\Source\components\ControlsPanel.h"/>
+    <ClInclude Include="..\..\Source\components\LumiverseEnumPropertyComponent.h"/>
     <ClInclude Include="..\..\Source\components\ProfileEditorProperties.h"/>
     <ClInclude Include="..\..\Source\components\DMXPatchViewer.h"/>
     <ClInclude Include="..\..\Source\components\DMXMap.h"/>
