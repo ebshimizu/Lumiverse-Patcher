@@ -70,7 +70,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
   const CommandID ids[] = {
     MainWindow::open, MainWindow::save, MainWindow::saveAs, MainWindow::openProfileEditor,
     MainWindow::addPatch, MainWindow::deletePatch, MainWindow::loadProfiles, MainWindow::setProfileLocation,
-    MainWindow::addDevices
+    MainWindow::addDevices, MainWindow::updateSelection, MainWindow::deleteDevices
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -118,6 +118,13 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
     result.setInfo("Add Devices", "Adds devices to the Rig.", deviceCategory, 0);
     result.addDefaultKeypress('a', ModifierKeys::noModifiers);
     break;
+  case MainWindow::deleteDevices:
+    result.setInfo("Delete Devices", "Deletes the selected devices from the Rig", deviceCategory, 0);
+    result.addDefaultKeypress('d', ModifierKeys::commandModifier);
+    break;
+  case MainWindow::updateSelection:
+    result.setInfo("Update Selection", "updates the current set of selected devices.", "internal", 0);
+    break;
   default:
     break;
   }
@@ -153,6 +160,12 @@ bool MainContentComponent::perform(const InvocationInfo& info)
     break;
   case MainWindow::addDevices:
     addDevices();
+    break;
+  case MainWindow::updateSelection:
+    updateSelection();
+    break;
+  case MainWindow::deleteDevices:
+    deleteDevices();
     break;
   default:
     return false;
@@ -348,7 +361,6 @@ void MainContentComponent::deleteProfiles() {
   _dmxProfiles.clear();
 }
 
-
 bool MainContentComponent::loadProfile(string filename) {
   // Check to see if we can load the file.
   ifstream data;
@@ -518,6 +530,33 @@ void MainContentComponent::addDevices() {
     MainWindow::getRig()->init();
     MainWindow::getRig()->run();
     reload();
+  }
+}
+
+void MainContentComponent::updateSelection() {
+  _currentSelection = m_dp->getSelectedDevices();
+  // will also likely need to update the device propertys panel
+}
+
+void MainContentComponent::deleteDevices() {
+  juce::AlertWindow w("Delete Devices",
+    "Are you sure you want to delete the selected Devices?",
+    juce::AlertWindow::WarningIcon);
+
+  w.addButton("Delete", 1, KeyPress(KeyPress::returnKey, 0, 0));
+  w.addButton("Cancel", 0, KeyPress(KeyPress::escapeKey, 0, 0));
+
+  if (w.runModalLoop() != 0) {
+    MainWindow::getRig()->stop();
+
+    for (const auto& d : _currentSelection.getDevices()) {
+      MainWindow::getRig()->deleteDevice(d->getId());
+    }
+
+    reload();
+    updateSelection();
+    MainWindow::getRig()->init();
+    MainWindow::getRig()->run();
   }
 }
 

@@ -13,7 +13,8 @@
 
 #include "../../JuceLibraryCode/JuceHeader.h"
 #include "../components/DeviceTable.h"
-
+#include "LumiverseCore.h"
+using namespace Lumiverse;
 //==============================================================================
 /*
 */
@@ -27,6 +28,8 @@ public:
   void resized();
 
   void reload();
+
+  DeviceSet getSelectedDevices();
 
 private:
   StretchableLayoutManager _layout;

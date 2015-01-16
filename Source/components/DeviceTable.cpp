@@ -62,6 +62,7 @@ void DeviceTable::init() {
 
 void DeviceTable::reinit() {
   // Reset data to clean
+  deselectAll();
   _table.getHeader().removeAllColumns();
   _ids.clear();
   _cols.clear();
@@ -190,20 +191,37 @@ void DeviceTable::sortOrderChanged(int newSortColumnId, bool isForwards) {
 }
 
 void DeviceTable::selectedRowsChanged(int lastRowSelected) {
+  MainWindow::getApplicationCommandManager().invokeDirectly(MainWindow::updateSelection, false);
+}
+
+DeviceSet DeviceTable::getSelectedDevices() {
   // Get the list of things selected in the table.
-  //StringArray ids = getSelectedIds();
+  StringArray ids = getSelectedIds();
 
   // Replace them in the device set.
-  //DeviceSet newSelection(m_rig.get());
+  DeviceSet newSelection(MainWindow::getRig().get());
 
-  //for (String id : _ids) {
+  for (String id : ids) {
     // Query system will pick this up as a single id.
-  //  newSelection = newSelection.add(id.toStdString());
-  //}
+    newSelection = newSelection.add(id.toStdString());
+  }
 
-  //m_mc->setActiveSelection(newSelection);
+  return newSelection;
+}
 
-  // Redirect to the main selection changed function after updating the selected set.
+StringArray DeviceTable::getSelectedIds() {
+  StringArray selected;
+  int numSelected = _table.getNumSelectedRows();
+
+  for (int i = 0; i < numSelected; i++) {
+    selected.add(_ids[_table.getSelectedRow(i)]);
+  }
+
+  return selected;
+}
+
+void DeviceTable::deselectAll() {
+  _table.deselectAllRows();
 }
 
 Component* DeviceTable::refreshComponentForCell(int rowNumber, int columnId,

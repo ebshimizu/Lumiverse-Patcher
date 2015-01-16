@@ -33,6 +33,7 @@ PopupMenu MainMenuComponent::getMenuForIndex(int menuIndex, const String& /*menu
   }
   else if (menuIndex == 1) {
     menu.addCommandItem(commandManager, MainWindow::addDevices);
+    menu.addCommandItem(commandManager, MainWindow::deleteDevices);
     menu.addSeparator();
     menu.addCommandItem(commandManager, MainWindow::openProfileEditor);
   }

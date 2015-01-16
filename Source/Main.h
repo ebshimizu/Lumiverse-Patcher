@@ -71,7 +71,10 @@ public:
 
     // Patch
     addPatch = 0x2001,
-    deletePatch = 0x2002
+    deletePatch = 0x2002,
+
+    // internal
+    updateSelection = 0x3001
   };
 
   // Apparently we just leave this here to implement tooltips?

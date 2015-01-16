@@ -55,3 +55,7 @@ void DevicePanel::resized()
 void DevicePanel::reload() {
   _dt->reinit();
 }
+
+DeviceSet DevicePanel::getSelectedDevices() {
+  return _dt->getSelectedDevices();
+}

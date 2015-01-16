@@ -12,8 +12,10 @@
 #define DEVICETABLE_H_INCLUDED
 
 #include "../../JuceLibraryCode/JuceHeader.h"
+#include "LumiverseCore.h"
 
 using namespace std;
+using namespace Lumiverse;
 
 //==============================================================================
 /*
@@ -42,6 +44,10 @@ public:
   Component* refreshComponentForCell(int rowNumber, int columnId, bool isRowSelected, Component* existingComponentToUpdate);
 
   int getColumnAutoSizeWidth(int columnId) override;
+
+  DeviceSet getSelectedDevices();
+  StringArray getSelectedIds();
+  void deselectAll();
 
 protected:
   TableListBox _table;

@@ -61,6 +61,8 @@ private:
   void deleteProfiles();
   void setProfileLocation();
   void addDevices();
+  void updateSelection();
+  void deleteDevices();
 
   string m_rigName;
   File m_parentDir;
@@ -73,6 +75,8 @@ private:
 
   map<string, Device*> _deviceProfiles;
   map<string, map<string, patchData> > _dmxProfiles;
+
+  DeviceSet _currentSelection;
 };
 
 //==============================================================================
