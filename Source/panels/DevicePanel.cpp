@@ -17,18 +17,19 @@ DevicePanel::DevicePanel()
   // In your constructor, you should add any child components, and
   // initialise any special settings that your component needs.
   addAndMakeVisible(_dt = new DeviceTable());
-  //addAndMakeVisible(_dp = new PropertiesPanel());
-  //addAndMakeVisible(_rb = new StretchableLayoutResizerBar(&_layout, 1, true));
+  addAndMakeVisible(_cp = new ControlsPanel());
+  addAndMakeVisible(_rb = new StretchableLayoutResizerBar(&_layout, 1, true));
 
   _layout.setItemLayout(0, -0.25, -0.75, -0.75);
-  //_layout.setItemLayout(1, 3, 3, 3);
-  //_layout.setItemLayout(2, -0.25, -0.75, -0.35);
+  _layout.setItemLayout(1, 3, 3, 3);
+  _layout.setItemLayout(2, -0.25, -0.75, -0.35);
 }
 
 DevicePanel::~DevicePanel()
 {
   _dt = nullptr;
   _rb = nullptr;
+  _cp = nullptr;
 }
 
 void DevicePanel::paint (Graphics& g)
@@ -47,8 +48,8 @@ void DevicePanel::resized()
 {
   juce::Rectangle<int> area(getLocalBounds());
 
-  //Component* comps[] = { _dt, _rb/*, _dp */};
-  //_layout.layOutComponents(comps, 3, 0, 0, area.getWidth(), area.getHeight(), true, true);
+  Component* comps[] = { _dt, _rb, _cp };
+  _layout.layOutComponents(comps, 3, 0, 0, area.getWidth(), area.getHeight(), false, true);
   _dt->setBoundsInset(BorderSize<int>(0));
 }
 
@@ -58,4 +59,8 @@ void DevicePanel::reload() {
 
 DeviceSet DevicePanel::getSelectedDevices() {
   return _dt->getSelectedDevices();
+}
+
+void DevicePanel::updateSelectedDevices(DeviceSet d) {
+  _cp->updateProperties(d);
 }

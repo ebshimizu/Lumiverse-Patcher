@@ -535,7 +535,7 @@ void MainContentComponent::addDevices() {
 
 void MainContentComponent::updateSelection() {
   _currentSelection = m_dp->getSelectedDevices();
-  // will also likely need to update the device propertys panel
+  m_dp->updateSelectedDevices(_currentSelection);
 }
 
 void MainContentComponent::deleteDevices() {

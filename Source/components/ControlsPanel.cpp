@@ -19,7 +19,7 @@ void LumiverseFloatPropertySlider::setValue(double newValue)
   slider.setValue(newValue);
 
   for (const auto& d : devices.getDevices()) {
-    MainWindow::getRig()->getDevice(d->getId)->setParam(param, (float)newValue));
+    MainWindow::getRig()->getDevice(d->getId())->setParam(param, (float)newValue);
   }
 }
 
@@ -42,7 +42,7 @@ void LumiverseOrientationPropertySlider::setValue(double newValue)
 	slider.setValue(newValue);
 
   for (const auto& d : devices.getDevices()) {
-    MainWindow::getRig()->getDevice(d->getId)->setParam(param, (float)newValue);
+    MainWindow::getRig()->getDevice(d->getId())->setParam(param, (float)newValue);
   }
 }
 
@@ -50,8 +50,8 @@ void LumiverseOrientationPropertySlider::sliderDragEnded(Slider* slider) {
 }
 
 LumiverseColorPropertySlider::LumiverseColorPropertySlider(string propertyName, string channelName,
-  DeviceSet devices, double val, shared_ptr<Playback> pb, UpdateSource src, CueTable* ct)
-  : SliderPropertyComponent(channelName, 0, 1, 0.001), m_pb(pb), m_src(src), m_ct(ct)
+  DeviceSet devices, double val)
+  : SliderPropertyComponent(channelName, 0, 1, 0.001)
 {
   m_param = propertyName;
   m_channel = channelName;
@@ -62,41 +62,14 @@ LumiverseColorPropertySlider::LumiverseColorPropertySlider(string propertyName, 
 
 void LumiverseColorPropertySlider::setValue(double newVal) {
   m_val = newVal;
+
   slider.setValue(newVal);
-  if (m_src == CUE) {
-    // Write into selected cue in the cue editor
-    shared_ptr<CueList> list;
-    Cue* cue;
-
-    list = m_pb->getCueList(m_ct->getCurrentList());
-    if (list == nullptr)
-      return;
-
-    cue = list->getCue(m_ct->getCueNum());
-    if (cue == nullptr)
-      return;
-
-    for (auto d : m_devices.getDevices()) {
-      if (cue->getCueData()[d->getId()].count(m_param) == 0)
-        continue;
-
-      auto deviceKeyframes = cue->getCueData()[d->getId()][m_param];
-      for (const auto& k : deviceKeyframes) {
-        if (k.t == m_ct->getCueTime()) {
-          LumiverseColor* val = (LumiverseColor*)k.val.get();
-          val->setColorChannel(m_channel, newVal);
-          break;
-        }
-      }
-    }
-
-    m_ct->repaint();
+  for (const auto& d : m_devices.getDevices()) {
+    MainWindow::getRig()->getDevice(d->getId())->setParam(m_param, m_channel, newVal);
   }
-  m_pb->getProgrammer()->setParam(m_devices, m_param, m_channel, newVal);
 }
 
 void LumiverseColorPropertySlider::sliderDragEnded(Slider* slider) {
-  MainWindow::getApplicationCommandManager().invokeDirectly(MainWindow::pushUndo, false);
 }
 
 MetadataPropertyTextEditor::MetadataPropertyTextEditor(string propertyName, DeviceSet devices) 
@@ -139,9 +112,6 @@ void MetadataPropertyTextEditor::setText(const String &newText) {
 		}
 		m_val = newText.toStdString();
 	}
-
-  MainWindow::getApplicationCommandManager().invokeDirectly(MainWindow::pushUndo, false);
-  MainWindow::getApplicationCommandManager().invokeDirectly(MainWindow::updateSmartGroups, true);
 }
 
 void MetadataPropertyButton::buttonClicked() {
@@ -176,13 +146,10 @@ void MetadataPropertyButton::buttonClicked() {
 		for (Device *dev : m_devices.getDevices()) {
 			dev->setMetadata(name.toStdString(), val.toStdString());
 		}
-
-    MainWindow::getApplicationCommandManager().invokeDirectly(MainWindow::pushUndo, false);
-		MainWindow::getApplicationCommandManager().invokeDirectly(MainWindow::updateSmartGroups, true);
 	}
 }
 // ============================================================================
-ControlsPanel::ControlsPanel(shared_ptr<Playback> pb) : m_pb(pb) {
+ControlsPanel::ControlsPanel() {
   properties.setName("Device Properties");
   properties.setMessageWhenEmpty("No Devices Selected");
 
@@ -201,7 +168,7 @@ void ControlsPanel::resized() {
   properties.setBounds(getLocalBounds());
 }
 
-void ControlsPanel::updateProperties(DeviceSet activeDevices, UpdateSource src, CueTable* ct) {
+void ControlsPanel::updateProperties(DeviceSet activeDevices) {
   // Process for this is to look at what components needed to be added, add and sort them
   // and then display them
   properties.clear();
@@ -221,28 +188,6 @@ void ControlsPanel::updateProperties(DeviceSet activeDevices, UpdateSource src, 
   set<std::string> metadata = activeDevices.getAllMetadata();
   set<std::string> params = activeDevices.getAllParams();
   const set<Device*>& devices = activeDevices.getDevices();
-  auto& prog = m_pb->getProgrammer();
-
-  // If we're manipulating a cue, we should gather the data that doesn't change here.
-  shared_ptr<CueList> list;
-  Cue* cue;
-
-  if (src == CUE) {
-    list = m_pb->getCueList(ct->getCurrentList());
-    if (list == nullptr)
-      return;
-
-    cue = list->getCue(ct->getCueNum());
-    if (cue == nullptr)
-      return;
-  }
-  // if we're not in a cue, pull the right data into the programmer before running this.
-  else if (src == TABLE) {
-    prog->captureFromRig(activeDevices);
-  }
-  else if (src == PROG) {
-    prog->captureDevices(activeDevices);
-  }
 
   for (std::string param : params) {
     for (auto d : devices) {
@@ -251,36 +196,18 @@ void ControlsPanel::updateProperties(DeviceSet activeDevices, UpdateSource src, 
         // we put into the programmer. If we're doing a cue, things get more complicated.
         LumiverseType* p = nullptr;
 
-        if (src != CUE) {
-          // Pull value from programmer
-          p = prog->getDevice(d->getId())->getParam(param);
-        }
-        else {
-          if (cue->getCueData()[d->getId()].count(param) == 0)
-            continue;
-
-          auto deviceKeyframes = cue->getCueData()[d->getId()][param];
-          for (const auto& k : deviceKeyframes) {
-            if (k.t == ct->getCueTime()) {
-              p = k.val.get();
-              break;
-            }
-          }
-
-          if (p == nullptr) {
-            continue;
-          }
-        }
+        // Pull value from rig
+        p = MainWindow::getRig()->getDevice(d->getId())->getParam(param);
 
         if (p->getTypeName() == "float") {
           LumiverseFloatPropertySlider* comp = new LumiverseFloatPropertySlider(param, activeDevices,
-            (LumiverseFloat*) p, m_pb, src, ct);
+            (LumiverseFloat*) p);
           
           paramComponents.add(comp);
           break;
         }
         else if (p->getTypeName() == "enum") {
-          LumiverseEnumPropertyComponent* comp = new LumiverseEnumPropertyComponent(param, activeDevices, (LumiverseEnum*) p, m_pb, src, ct);
+          LumiverseEnumPropertyComponent* comp = new LumiverseEnumPropertyComponent(param, activeDevices, (LumiverseEnum*) p);
 
           if (param == "rainbow" || param == "colorWheel")
             colorComponents.add(comp);
@@ -297,17 +224,17 @@ void ControlsPanel::updateProperties(DeviceSet activeDevices, UpdateSource src, 
           LumiverseColor* c = (LumiverseColor*)p;
           
           for (const auto& kvp : c->getColorParams()) {
-            colorComponents.add(new LumiverseColorPropertySlider(param, kvp.first, activeDevices, kvp.second, m_pb, src, ct));
+            colorComponents.add(new LumiverseColorPropertySlider(param, kvp.first, activeDevices, kvp.second));
           }
 
           break;
         }
-		if (p->getTypeName() == "orientation") {
-			LumiverseOrientationPropertySlider* comp = new LumiverseOrientationPropertySlider(param, activeDevices, (LumiverseOrientation*) p, m_pb, src, ct);
+        else if (p->getTypeName() == "orientation") {
+          LumiverseOrientationPropertySlider* comp = new LumiverseOrientationPropertySlider(param, activeDevices, (LumiverseOrientation*) p);
 
-			paramComponents.add(comp);
-			break;
-		}
+          paramComponents.add(comp);
+          break;
+        }
         else {
           // Don't do anything for unknown types. Can't interact with what you don't understand.
         }

@@ -13,7 +13,9 @@
 
 #include "../../JuceLibraryCode/JuceHeader.h"
 #include "../components/DeviceTable.h"
+#include "../components/ControlsPanel.h"
 #include "LumiverseCore.h"
+
 using namespace Lumiverse;
 //==============================================================================
 /*
@@ -30,9 +32,11 @@ public:
   void reload();
 
   DeviceSet getSelectedDevices();
+  void updateSelectedDevices(DeviceSet d);
 
 private:
   StretchableLayoutManager _layout;
+  ScopedPointer<ControlsPanel> _cp;
   ScopedPointer<DeviceTable> _dt;
   ScopedPointer<StretchableLayoutResizerBar> _rb;
 
