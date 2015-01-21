@@ -45,17 +45,23 @@ void DMXWidget::resized() {
 
 }
 
-void DMXWidget::setUsed() {
+void DMXWidget::setUsed(string id) {
   if (_status == USED) {
     _status = CONFLICT;
   }
   else if (_status == FREE) {
     _status = USED;
   }
+
+  if (id != "") {
+    _tooltip = _tooltip + id + " ";
+    setTooltip(_tooltip);
+  }
 }
 
 void DMXWidget::setFree() {
   _status = FREE;
+  _tooltip = "";
 }
 
 void DMXWidget::setConflict() {
@@ -112,7 +118,7 @@ void DMXMap::reinit() {
       int addrEnd = addrStart + p->sizeOfDeviceMap(data->getDMXMapKey()); // Exclusive upper bound on used addresses.
 
       for (int i = addrStart; i < addrEnd; i++) {
-        _addrs[i]->setUsed();
+        _addrs[i]->setUsed(d->getId());
       }
     }
   }

@@ -25,7 +25,7 @@ enum AddrStatus {
 //==============================================================================
 // Box containing address number and a status indicating if it's used, free,
 // or conflicted.
-class DMXWidget : public Component
+class DMXWidget : public Component, public SettableTooltipClient 
 {
 public:
   DMXWidget(int addr);
@@ -36,11 +36,13 @@ public:
 
   AddrStatus getStatus() { return _status; }
 
-  void setUsed();
+  void setUsed(string id = "");
   void setFree();
   void setConflict();
+
 private:
   AddrStatus _status;
+  string _tooltip;
 
   int _addr;
 };

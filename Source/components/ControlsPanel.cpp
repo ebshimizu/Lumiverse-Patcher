@@ -148,6 +148,71 @@ void MetadataPropertyButton::buttonClicked() {
 		}
 	}
 }
+
+//==============================================================================
+DMXPatchAddrProperty::DMXPatchAddrProperty(string patchID, string deviceID) :
+TextPropertyComponent(patchID + ": Address", 10, false), _patchID(patchID), _deviceID(deviceID)
+{}
+
+void DMXPatchAddrProperty::setText(const String& newText) {
+  if (newText == "") {
+    MainWindow::getRig()->getPatchAsDMXPatch(_patchID)->deleteDevice(_deviceID);
+  }
+  else {
+    auto info = MainWindow::getRig()->getPatchAsDMXPatch(_patchID)->getDevicePatch(_deviceID);
+    if (info != nullptr) {
+      info->setBaseAddress(newText.getIntValue() - 1);
+    }
+    else {
+      string dmxMap = MainWindow::getRig()->getDevice(_deviceID)->getType();
+      MainWindow::getRig()->getPatchAsDMXPatch(_patchID)->patchDevice(_deviceID, new DMXDevicePatch(dmxMap, newText.getIntValue() - 1, 0));
+    }
+  }
+  MainWindow::getApplicationCommandManager().invokeDirectly(MainWindow::refresh, false);
+}
+
+String DMXPatchAddrProperty::getText() const {
+  auto info = MainWindow::getRig()->getPatchAsDMXPatch(_patchID)->getDevicePatch(_deviceID);
+  if (info != nullptr) {
+    return String(info->getBaseAddress() + 1);
+  }
+  else {
+    return "Not Patched";
+  }
+}
+
+//==============================================================================
+DMXPatchUniverseProperty::DMXPatchUniverseProperty(string patchID, string deviceID) :
+TextPropertyComponent(patchID + ": Universe", 10, false), _patchID(patchID), _deviceID(deviceID)
+{}
+
+void DMXPatchUniverseProperty::setText(const String& newText) {
+  if (newText == "") {
+    MainWindow::getRig()->getPatchAsDMXPatch(_patchID)->deleteDevice(_deviceID);
+  }
+  else {
+    auto info = MainWindow::getRig()->getPatchAsDMXPatch(_patchID)->getDevicePatch(_deviceID);
+    if (info != nullptr) {
+      info->setUniverse(newText.getIntValue() - 1);
+    }
+    else {
+      string dmxMap = MainWindow::getRig()->getDevice(_deviceID)->getType();
+      MainWindow::getRig()->getPatchAsDMXPatch(_patchID)->patchDevice(_deviceID, new DMXDevicePatch(dmxMap, 0, newText.getIntValue() - 1));
+    }
+  }
+  MainWindow::getApplicationCommandManager().invokeDirectly(MainWindow::refresh, false);
+}
+
+String DMXPatchUniverseProperty::getText() const {
+  auto info = MainWindow::getRig()->getPatchAsDMXPatch(_patchID)->getDevicePatch(_deviceID);
+  if (info != nullptr) {
+    return String(info->getUniverse() + 1);
+  }
+  else {
+    return "Not Patched";
+  }
+}
+
 // ============================================================================
 ControlsPanel::ControlsPanel() {
   properties.setName("Device Properties");
@@ -248,12 +313,31 @@ void ControlsPanel::updateProperties(DeviceSet activeDevices) {
 	  metadataComponents.add(comp);
   }
   
-  if (activeDevices.size() > 0)
-	metadataComponents.add(new MetadataPropertyButton(activeDevices));
+  if (activeDevices.size() > 0) metadataComponents.add(new MetadataPropertyButton(activeDevices));
 
   if (paramComponents.size() > 0) properties.addSection("General", paramComponents);
   if (beamComponents.size() > 0) properties.addSection("Beam", beamComponents);
   if (colorComponents.size() > 0) properties.addSection("Color", colorComponents);
   if (controlComponents.size() > 0) properties.addSection("Control", controlComponents);
   if (metadataComponents.size() > 0) properties.addSection("Metadata", metadataComponents);
+
+  // Finally patch data if there's a single device selected.
+  if (devices.size() == 1) {
+    string deviceID = "";
+    for (auto d : devices) {
+      deviceID = d->getId();
+      break;
+    }
+
+    Array<PropertyComponent*> patchComponents;
+    for (const auto& kvp : MainWindow::getRig()->getPatches()) {
+      if (kvp.second->getType() == "DMXPatch") {
+        // Add DMX properties
+        patchComponents.add(new DMXPatchUniverseProperty(kvp.first, deviceID));
+        patchComponents.add(new DMXPatchAddrProperty(kvp.first, deviceID));
+      }
+    }
+
+    properties.addSection("Patch", patchComponents);
+  }
 }

@@ -74,7 +74,8 @@ public:
     deletePatch = 0x2002,
 
     // internal
-    updateSelection = 0x3001
+    updateSelection = 0x3001,
+    refresh = 0x3002
   };
 
   // Apparently we just leave this here to implement tooltips?

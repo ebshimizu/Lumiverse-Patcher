@@ -70,7 +70,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
   const CommandID ids[] = {
     MainWindow::open, MainWindow::save, MainWindow::saveAs, MainWindow::openProfileEditor,
     MainWindow::addPatch, MainWindow::deletePatch, MainWindow::loadProfiles, MainWindow::setProfileLocation,
-    MainWindow::addDevices, MainWindow::updateSelection, MainWindow::deleteDevices
+    MainWindow::addDevices, MainWindow::updateSelection, MainWindow::deleteDevices, MainWindow::refresh
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -125,6 +125,9 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
   case MainWindow::updateSelection:
     result.setInfo("Update Selection", "updates the current set of selected devices.", "internal", 0);
     break;
+  case MainWindow::refresh:
+    result.setInfo("Refresh", "reloads the various panels and other stuff in this program", "internal", 0);
+    break;
   default:
     break;
   }
@@ -166,6 +169,11 @@ bool MainContentComponent::perform(const InvocationInfo& info)
     break;
   case MainWindow::deleteDevices:
     deleteDevices();
+    break;
+  case MainWindow::refresh:
+    updateSelection();
+    m_dp->repaint();
+    m_pp->reload();
     break;
   default:
     return false;

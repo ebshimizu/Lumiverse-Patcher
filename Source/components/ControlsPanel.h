@@ -97,6 +97,29 @@ private:
 	Lumiverse::DeviceSet m_devices;
 };
 
+//==============================================================================
+class DMXPatchAddrProperty : public TextPropertyComponent
+{
+public:
+  DMXPatchAddrProperty(string patchID, string deviceID);
+  void setText(const String& newText) override;
+  String getText() const override;
+private:
+  string _patchID;
+  string _deviceID;
+};
+
+//==============================================================================
+class DMXPatchUniverseProperty : public TextPropertyComponent
+{
+public:
+  DMXPatchUniverseProperty(string patchID, string deviceID);
+  void setText(const String& newText) override;
+  String getText() const override;
+private:
+  string _patchID;
+  string _deviceID;
+};
 
 //==============================================================================
 // Component that displays the properties of a selected device
