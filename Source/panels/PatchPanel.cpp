@@ -11,6 +11,7 @@
 #include "../../JuceLibraryCode/JuceHeader.h"
 #include "PatchPanel.h"
 #include "../Main.h"
+#include "../components/ArnoldAnimationPatchViewer.h"
 
 //==============================================================================
 PatchPanel::PatchPanel()
@@ -33,7 +34,12 @@ void PatchPanel::reload() {
   auto& rigRef = MainWindow::getRig();
 
   for (const auto& p : rigRef->getPatches()) {
-    _tc->addTab(p.first, Colour(0xff000040), new DMXPatchViewer(p.first), true);
+    if (p.second->getType() == "DMXPatch") {
+      _tc->addTab(p.first, Colour(0xff000040), new DMXPatchViewer(p.first), true);
+    }
+    else if (p.second->getType() == "ArnoldAnimationPatch") {
+      _tc->addTab(p.first, Colour(0xff000040), new ArnoldAnimationPatchViewer(p.first), true);
+    }
   }
 }
 

@@ -57,7 +57,10 @@ void DMXPatchViewer::reload() {
   auto& rigRef = MainWindow::getRig();
 
   auto patch = rigRef->getPatch(_patchID);
-  assert(patch != nullptr && patch->getType() == "DMXPatch");
+  
+  if (patch == nullptr || patch->getType() != "DMXPatch")
+    return;
+
   DMXPatch* p = dynamic_cast<DMXPatch*>(patch);
   
   // We only show you stuff if there's an actual interface assigned to it.

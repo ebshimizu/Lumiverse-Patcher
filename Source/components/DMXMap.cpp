@@ -102,9 +102,11 @@ void DMXMap::reinit() {
   // Find the DMX info associated with the selected universe.
   auto patch = rigRef->getPatch(_patchID);
 
-  if (patch == nullptr) return;
+  if (patch == nullptr)
+    return;
 
-  assert(patch->getType() == "DMXPatch");
+  if (patch->getType() != "DMXPatch")
+    return;
 
   DMXPatch* p = dynamic_cast<DMXPatch*>(patch);
 
