@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="VUcDU6" name="LumiversePatcher" projectType="guiapp" version="0.1a"
+<JUCERPROJECT id="VUcDU6" name="LumiversePatcher" projectType="guiapp" version="0.1"
               bundleIdentifier="com.EvanShimizu.LumiversePatcher" includeBinaryInAppConfig="1"
-              jucerVersion="3.1.1" companyEmail="eshimizu@cs.cmu.edu">
+              jucerVersion="4.2.3" companyEmail="eshimizu@cs.cmu.edu">
   <MAINGROUP id="Lbptc0" name="LumiversePatcher">
     <GROUP id="{87064B84-14C7-265B-80F6-28E21365D76C}" name="Source">
       <GROUP id="{F053DD56-23B8-7C3C-455C-084E8878CD0C}" name="panels">
@@ -15,6 +15,10 @@
         <FILE id="VdImkn" name="DevicePanel.h" compile="0" resource="0" file="Source/panels/DevicePanel.h"/>
       </GROUP>
       <GROUP id="{56C52D8C-F265-C43F-A440-D64F12FA2942}" name="components">
+        <FILE id="MpswP2" name="ArnoldAnimationPatchViewer.cpp" compile="1"
+              resource="0" file="Source/components/ArnoldAnimationPatchViewer.cpp"/>
+        <FILE id="t7YjvK" name="ArnoldAnimationPatchViewer.h" compile="0" resource="0"
+              file="Source/components/ArnoldAnimationPatchViewer.h"/>
         <FILE id="TOqzly" name="ControlsPanel.cpp" compile="1" resource="0"
               file="Source/components/ControlsPanel.cpp"/>
         <FILE id="QOAekr" name="ControlsPanel.h" compile="0" resource="0" file="Source/components/ControlsPanel.h"/>
@@ -53,19 +57,19 @@
                        isDebug="0" optimisation="2" targetName="LumiversePatcher"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_core" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_events" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_graphics" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_data_structures" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_gui_basics" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_gui_extra" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_cryptography" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_video" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_opengl" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_audio_basics" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_audio_devices" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_audio_formats" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_audio_processors" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
+        <MODULEPATH id="juce_core" path="..\JUCE\modules\juce_core"/>
+        <MODULEPATH id="juce_events" path="..\JUCE\modules\juce_events"/>
+        <MODULEPATH id="juce_graphics" path="..\JUCE\modules\juce_graphics"/>
+        <MODULEPATH id="juce_data_structures" path="..\JUCE\modules\juce_data_structures"/>
+        <MODULEPATH id="juce_gui_basics" path="..\JUCE\modules\juce_gui_basics"/>
+        <MODULEPATH id="juce_gui_extra" path="..\JUCE\modules\juce_gui_extra"/>
+        <MODULEPATH id="juce_cryptography" path="..\JUCE\modules\juce_cryptography"/>
+        <MODULEPATH id="juce_video" path="..\JUCE\modules\juce_video"/>
+        <MODULEPATH id="juce_opengl" path="..\JUCE\modules\juce_opengl"/>
+        <MODULEPATH id="juce_audio_basics" path="..\JUCE\modules\juce_audio_basics"/>
+        <MODULEPATH id="juce_audio_devices" path="..\JUCE\modules\juce_audio_devices"/>
+        <MODULEPATH id="juce_audio_formats" path="..\JUCE\modules\juce_audio_formats"/>
+        <MODULEPATH id="juce_audio_processors" path="..\JUCE\modules\juce_audio_processors"/>
       </MODULEPATHS>
     </XCODE_MAC>
     <VS2013 targetFolder="Builds/VisualStudio2013" externalLibraries="LumiverseCore.lib&#10;libpng16_static.lib&#10;libjson.lib&#10;clp.lib&#10;ftd2xx.lib&#10;libartnet.lib">
@@ -79,19 +83,19 @@
                        useRuntimeLibDLL="1"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_core" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_events" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_graphics" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_data_structures" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_gui_basics" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_gui_extra" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_cryptography" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_video" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_opengl" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_audio_basics" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_audio_devices" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_audio_formats" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_audio_processors" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
+        <MODULEPATH id="juce_core" path="..\JUCE\modules\juce_core"/>
+        <MODULEPATH id="juce_events" path="..\JUCE\modules\juce_events"/>
+        <MODULEPATH id="juce_graphics" path="..\JUCE\modules\juce_graphics"/>
+        <MODULEPATH id="juce_data_structures" path="..\JUCE\modules\juce_data_structures"/>
+        <MODULEPATH id="juce_gui_basics" path="..\JUCE\modules\juce_gui_basics"/>
+        <MODULEPATH id="juce_gui_extra" path="..\JUCE\modules\juce_gui_extra"/>
+        <MODULEPATH id="juce_cryptography" path="..\JUCE\modules\juce_cryptography"/>
+        <MODULEPATH id="juce_video" path="..\JUCE\modules\juce_video"/>
+        <MODULEPATH id="juce_opengl" path="..\JUCE\modules\juce_opengl"/>
+        <MODULEPATH id="juce_audio_basics" path="..\JUCE\modules\juce_audio_basics"/>
+        <MODULEPATH id="juce_audio_devices" path="..\JUCE\modules\juce_audio_devices"/>
+        <MODULEPATH id="juce_audio_formats" path="..\JUCE\modules\juce_audio_formats"/>
+        <MODULEPATH id="juce_audio_processors" path="..\JUCE\modules\juce_audio_processors"/>
       </MODULEPATHS>
     </VS2013>
     <LINUX_MAKE targetFolder="Builds/Linux">
@@ -102,36 +106,63 @@
                        targetName="LumiversePatcher"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_core" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_events" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_graphics" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_data_structures" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_gui_basics" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_gui_extra" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_cryptography" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_video" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_opengl" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_audio_basics" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_audio_devices" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_audio_formats" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
-        <MODULEPATH id="juce_audio_processors" path="C:\Users\eshimizu\Documents\Lumiverse\lumiverse_patcher\third-party\JUCE\modules"/>
+        <MODULEPATH id="juce_core" path="..\JUCE\modules\juce_core"/>
+        <MODULEPATH id="juce_events" path="..\JUCE\modules\juce_events"/>
+        <MODULEPATH id="juce_graphics" path="..\JUCE\modules\juce_graphics"/>
+        <MODULEPATH id="juce_data_structures" path="..\JUCE\modules\juce_data_structures"/>
+        <MODULEPATH id="juce_gui_basics" path="..\JUCE\modules\juce_gui_basics"/>
+        <MODULEPATH id="juce_gui_extra" path="..\JUCE\modules\juce_gui_extra"/>
+        <MODULEPATH id="juce_cryptography" path="..\JUCE\modules\juce_cryptography"/>
+        <MODULEPATH id="juce_video" path="..\JUCE\modules\juce_video"/>
+        <MODULEPATH id="juce_opengl" path="..\JUCE\modules\juce_opengl"/>
+        <MODULEPATH id="juce_audio_basics" path="..\JUCE\modules\juce_audio_basics"/>
+        <MODULEPATH id="juce_audio_devices" path="..\JUCE\modules\juce_audio_devices"/>
+        <MODULEPATH id="juce_audio_formats" path="..\JUCE\modules\juce_audio_formats"/>
+        <MODULEPATH id="juce_audio_processors" path="..\JUCE\modules\juce_audio_processors"/>
       </MODULEPATHS>
     </LINUX_MAKE>
+    <VS2015 targetFolder="Builds/VisualStudio2015" externalLibraries="LumiverseCore.lib&#10;libpng16_static.lib&#10;libjson.lib&#10;clp.lib&#10;ftd2xx.lib&#10;libartnet.lib&#10;ai.lib&#10;zlibstatic.lib&#10;IlmImf-2_2.lib&#10;Iex-2_2.lib&#10;IlmThread-2_2.lib&#10;Imath-2_2.lib&#10;IexMath-2_2.lib&#10;Half.lib">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="x64"
+                       isDebug="1" optimisation="1" targetName="LumiversePatcher" headerPath="C:\Program Files\Lumiverse\include&#10;C:\Program Files\Lumiverse\Debug\include&#10;C:\Program Files\libpng\include&#10;C:\Program Files\zlib\include&#10;C:\Program Files\CURL\include&#10;C:\Program Files\CURLCPP\include&#10;C:\Program Files\openexr\Debug\include"
+                       libraryPath="C:\Program Files\Lumiverse\Debug\lib&#10;C:\Program Files\libpng\lib&#10;C:\Program Files\zlib\lib&#10;C:\Program Files\CURL\lib\Debug&#10;C:\Program Files\CURLCPP\lib\Debug&#10;C:\Program Files\ilmbase\Debug\lib&#10;C:\Program Files\openexr\Debug\lib"
+                       useRuntimeLibDLL="1"/>
+        <CONFIGURATION name="Release" winWarningLevel="4" generateManifest="1" winArchitecture="x64"
+                       isDebug="0" optimisation="3" targetName="LumiversePatcher" headerPath="C:\Program Files\Lumiverse\include&#10;C:\Program Files\Lumiverse\Release\include&#10;C:\Program Files\libpng\include&#10;C:\Program Files\zlib\include&#10;C:\Program Files\CURL\include&#10;C:\Program Files\CURLCPP\include&#10;C:\Program Files\openexr\Release\include"
+                       libraryPath="C:\Program Files\Lumiverse\Release\lib&#10;C:\Program Files\libpng\lib&#10;C:\Program Files\zlib\lib&#10;C:\Program Files\CURL\lib\Release&#10;C:\Program Files\CURLCPP\lib\Release&#10;C:\Program Files\ilmbase\Release\lib&#10;C:\Program Files\openexr\Release\lib"
+                       useRuntimeLibDLL="1"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_video" path="..\JUCE\modules\juce_video"/>
+        <MODULEPATH id="juce_opengl" path="..\JUCE\modules\juce_opengl"/>
+        <MODULEPATH id="juce_gui_extra" path="..\JUCE\modules\juce_gui_extra"/>
+        <MODULEPATH id="juce_gui_basics" path="..\JUCE\modules\juce_gui_basics"/>
+        <MODULEPATH id="juce_graphics" path="..\JUCE\modules\juce_graphics"/>
+        <MODULEPATH id="juce_events" path="..\JUCE\modules\juce_events"/>
+        <MODULEPATH id="juce_data_structures" path="..\JUCE\modules\juce_data_structures"/>
+        <MODULEPATH id="juce_cryptography" path="..\JUCE\modules\juce_cryptography"/>
+        <MODULEPATH id="juce_core" path="..\JUCE\modules\juce_core"/>
+        <MODULEPATH id="juce_audio_processors" path="..\JUCE\modules\juce_audio_processors"/>
+        <MODULEPATH id="juce_audio_formats" path="..\JUCE\modules\juce_audio_formats"/>
+        <MODULEPATH id="juce_audio_devices" path="..\JUCE\modules\juce_audio_devices"/>
+        <MODULEPATH id="juce_audio_basics" path="..\JUCE\modules\juce_audio_basics"/>
+      </MODULEPATHS>
+    </VS2015>
   </EXPORTFORMATS>
   <MODULES>
-    <MODULES id="juce_audio_basics" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_audio_devices" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_audio_formats" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_audio_processors" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_core" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_cryptography" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_data_structures" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_events" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_graphics" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_gui_basics" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_gui_extra" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_opengl" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_video" showAllCode="1" useLocalCopy="0"/>
+    <MODULES id="juce_audio_basics" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_audio_devices" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_audio_formats" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_audio_processors" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_core" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_cryptography" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_data_structures" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_events" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_graphics" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_gui_basics" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_gui_extra" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_opengl" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_video" showAllCode="1" useLocalCopy="1"/>
   </MODULES>
   <JUCEOPTIONS/>
 </JUCERPROJECT>
