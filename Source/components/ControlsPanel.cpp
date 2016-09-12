@@ -226,7 +226,7 @@ ControlsPanel::~ControlsPanel() {
 }
 
 void ControlsPanel::paint(Graphics& g) {
-  g.fillAll(Colour(0xff1c1c1c));
+  g.fillAll(Colours::grey);
 }
 
 void ControlsPanel::resized() {

@@ -70,7 +70,8 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
   const CommandID ids[] = {
     MainWindow::open, MainWindow::save, MainWindow::saveAs, MainWindow::openProfileEditor,
     MainWindow::addPatch, MainWindow::deletePatch, MainWindow::loadProfiles, MainWindow::setProfileLocation,
-    MainWindow::addDevices, MainWindow::updateSelection, MainWindow::deleteDevices, MainWindow::refresh
+    MainWindow::addDevices, MainWindow::updateSelection, MainWindow::deleteDevices, MainWindow::refresh,
+    MainWindow::addDefaultArnoldNodeNames
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -128,6 +129,8 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
   case MainWindow::refresh:
     result.setInfo("Refresh", "reloads the various panels and other stuff in this program", "internal", 0);
     break;
+  case MainWindow::addDefaultArnoldNodeNames:
+    result.setInfo("Add Default Arnold Node Names", "Sets the arnold node name metadata vale to the light id", "Patch", 0);
   default:
     break;
   }
@@ -174,6 +177,9 @@ bool MainContentComponent::perform(const InvocationInfo& info)
     updateSelection();
     m_dp->repaint();
     m_pp->reload();
+    break;
+  case MainWindow::addDefaultArnoldNodeNames:
+    addDefaultArnold();
     break;
   default:
     return false;
@@ -283,6 +289,8 @@ void MainContentComponent::addPatch() {
 
   StringArray types;
   types.add("DMX");
+  types.add("Arnold");
+  types.add("Cached Arnold");
 
   w.addTextEditor("name", "", "Patch ID");
   w.addComboBox("type", types, "Type");
@@ -308,6 +316,15 @@ void MainContentComponent::addPatch() {
     if (type == 0) {
       // DMX Patch
       DMXPatch* p = new DMXPatch();
+      MainWindow::getRig()->addPatch(id, (Patch*)p);
+    }
+    if (type == 1) {
+      // arnold patch
+      ArnoldAnimationPatch* p = new ArnoldAnimationPatch(new ArnoldInterface());
+      MainWindow::getRig()->addPatch(id, (Patch*)p);
+    }
+    if (type == 2) {
+      ArnoldAnimationPatch* p = new ArnoldAnimationPatch(new CachingArnoldInterface());
       MainWindow::getRig()->addPatch(id, (Patch*)p);
     }
 
@@ -566,6 +583,15 @@ void MainContentComponent::deleteDevices() {
     MainWindow::getRig()->init();
     MainWindow::getRig()->run();
   }
+}
+
+void MainContentComponent::addDefaultArnold()
+{
+  for (string id : MainWindow::getRig()->getAllDevices().getIds()) {
+    MainWindow::getRig()->getDevice(id)->setMetadata("Arnold Node Name", id);
+  }
+
+  reload();
 }
 
 void MainContentComponent::openProfileEditor() {

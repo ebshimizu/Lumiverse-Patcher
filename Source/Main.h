@@ -72,6 +72,7 @@ public:
     // Patch
     addPatch = 0x2001,
     deletePatch = 0x2002,
+    addDefaultArnoldNodeNames = 0x2003,
 
     // internal
     updateSelection = 0x3001,

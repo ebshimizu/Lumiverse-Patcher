@@ -63,6 +63,7 @@ private:
   void addDevices();
   void updateSelection();
   void deleteDevices();
+  void addDefaultArnold();
 
   string m_rigName;
   File m_parentDir;

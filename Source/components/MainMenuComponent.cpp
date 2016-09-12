@@ -40,6 +40,8 @@ PopupMenu MainMenuComponent::getMenuForIndex(int menuIndex, const String& /*menu
   else if (menuIndex == 2) {
     menu.addCommandItem(commandManager, MainWindow::addPatch);
     menu.addCommandItem(commandManager, MainWindow::deletePatch);
+    menu.addSeparator();
+    menu.addCommandItem(commandManager, MainWindow::addDefaultArnoldNodeNames);
   }
 
   return menu;

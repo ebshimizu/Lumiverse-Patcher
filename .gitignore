@@ -215,3 +215,5 @@ pip-log.txt
 .mr.developer.cfg
 *.pdb
 *.obj
+*.db
+Builds/VisualStudio2015/LumiversePatcher.VC.VC.opendb
