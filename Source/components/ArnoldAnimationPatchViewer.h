@@ -26,6 +26,7 @@ public:
   ArnoldAnimationPatchViewer(string patchID);
   ~ArnoldAnimationPatchViewer();
   
+  void paint(Graphics& g) override;
   void resized() override;
 
 private:
