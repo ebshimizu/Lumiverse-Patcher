@@ -68,6 +68,7 @@ public:
     openProfileEditor = 0x1001,
     addDevices = 0x1002,
     deleteDevices = 0x1003,
+    changeProfile = 0x1004,
 
     // Patch
     addPatch = 0x2001,

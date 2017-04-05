@@ -71,7 +71,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
     MainWindow::open, MainWindow::save, MainWindow::saveAs, MainWindow::openProfileEditor,
     MainWindow::addPatch, MainWindow::deletePatch, MainWindow::loadProfiles, MainWindow::setProfileLocation,
     MainWindow::addDevices, MainWindow::updateSelection, MainWindow::deleteDevices, MainWindow::refresh,
-    MainWindow::addDefaultArnoldNodeNames
+    MainWindow::addDefaultArnoldNodeNames, MainWindow::changeProfile
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -131,6 +131,10 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
     break;
   case MainWindow::addDefaultArnoldNodeNames:
     result.setInfo("Add Default Arnold Node Names", "Sets the arnold node name metadata vale to the light id", "Patch", 0);
+    break;
+  case MainWindow::changeProfile:
+    result.setInfo("Change Device Profile", "Changes the profile of the selected devices", deviceCategory, 0);
+    break;
   default:
     break;
   }
@@ -180,6 +184,9 @@ bool MainContentComponent::perform(const InvocationInfo& info)
     break;
   case MainWindow::addDefaultArnoldNodeNames:
     addDefaultArnold();
+    break;
+  case MainWindow::changeProfile:
+    changeDeviceProfile();
     break;
   default:
     return false;
@@ -520,7 +527,7 @@ void MainContentComponent::addDevices() {
 
     for (int i = 0; i < quantity; i++) {
       // Add the device
-      String newId = id + ((quantity > 1) ? String(i) : "");
+      String newId = id + ((quantity > 1) ? String(channel + i) : "");
 
       if (MainWindow::getRig()->getDevice(newId.toStdString()) != nullptr) {
         juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
@@ -592,6 +599,64 @@ void MainContentComponent::addDefaultArnold()
   }
 
   reload();
+}
+
+void MainContentComponent::changeDeviceProfile()
+{
+  juce::AlertWindow w("Change Profile",
+    "Switch devices to a different profile. This will unpatch all currently patched devices. Non-profile related Device metadata will be retained.",
+    juce::AlertWindow::QuestionIcon);
+
+  StringArray profiles;
+  for (const auto& kvp : _deviceProfiles) {
+    profiles.add(kvp.first);
+  }
+
+  w.addComboBox("type", profiles, "Device Type");
+
+  w.addButton("Change", 1, KeyPress(KeyPress::returnKey, 0, 0));
+  w.addButton("Cancel", 0, KeyPress(KeyPress::escapeKey, 0, 0));
+
+  if (w.runModalLoop() != 0) {
+    string profileName = profiles[w.getComboBoxComponent("type")->getSelectedItemIndex()].toStdString();
+
+    MainWindow::getRig()->stop();
+
+    // retrieve the profile
+    Device* prof = _deviceProfiles[profileName];
+    auto dmxprof = _dmxProfiles[profileName];
+
+    for (auto d : _currentSelection.getDevices()) {
+      // unpatch the selected devices
+      for (auto p : MainWindow::getRig()->getPatches()) {
+        if (DMXPatch* dp = dynamic_cast<DMXPatch*>(p.second)) {
+          dp->deleteDevice(d->getId());
+
+          // but add the parameter map for the new profile
+          dp->addDeviceMap(profileName, dmxprof);
+        }
+      }
+
+      // change profile
+      for (auto param : d->getParamNames()) {
+        d->deleteParameter(param);
+      }
+
+      // add profile parameters to device
+      for (auto param : prof->getParamNames()) {
+        d->setParam(param, LumiverseTypeUtils::copy(prof->getParam(param)));
+      }
+
+      // update relevant metadata
+      for (auto m : prof->getMetadataKeyNames()) {
+        d->setMetadata(m, prof->getMetadata(m));
+      }
+    }
+
+    MainWindow::getRig()->init();
+    MainWindow::getRig()->run();
+    reload();
+  }
 }
 
 void MainContentComponent::openProfileEditor() {

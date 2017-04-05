@@ -1211,24 +1211,30 @@ public:
       choices.add("RGB_REPEAT2");
       choices.add("RGB_REPEAT3");
       choices.add("RGB_REPEAT4");
+      choices.add("IGNORE");
     }
     else if (param->getTypeName() == "enum") {
       choices.add("ENUM");
+      choices.add("IGNORE");
     }
     else if (param->getTypeName() == "color") {
       choices.add("COLOR_RGB");
       choices.add("COLOR_RGBW");
       choices.add("COLOR_LUSTRPLUS");
+      choices.add("IGNORE");
     }
     else if (param->getTypeName() == "orientation") {
       choices.add("ORI_TO_FINE");
+      choices.add("IGNORE");
     }
   }
 
   ~LumiverseDMXMapTypeProperty() {}
 
   void setIndex(int newIndex) override {
-    (*_data)[_key].type = (conversionType)stringToConvType[choices[newIndex].toStdString()];
+    if (choices[newIndex] != "IGNORE") {
+      (*_data)[_key].type = (conversionType)stringToConvType[choices[newIndex].toStdString()];
+    }
   }
 
   int getIndex() const override {
